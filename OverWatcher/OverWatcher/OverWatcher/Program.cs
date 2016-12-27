@@ -14,7 +14,8 @@ using System.Data;
 
 namespace OverWatcher.TheICETrade
 {
-
+    public enum ProductType { Swap, Futures };
+    public enum CompanyName { CBNA, CGML };
     class DealsReportMonitor
     {
         private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
@@ -26,8 +27,6 @@ namespace OverWatcher.TheICETrade
             { "Citibank, N.A", "CBNA" },
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
         };
-        public static readonly string[] CompanyList = { "CBNA", "CGML" };
-        public static readonly string[] ProductList = { "Swap", "Futures" };
         public static void Main(string[] args)
         {
             //DealsReportMonitor.Schedule();
@@ -35,22 +34,7 @@ namespace OverWatcher.TheICETrade
             new DealsReportMonitor().QueryDB();
         }
 
-        private static void save(string path, DataTable dt)
-        {
-            StringBuilder sb = new StringBuilder();
 
-            IEnumerable<string> columnNames = dt.Columns.Cast<System.Data.DataColumn>().
-                                              Select(column => column.ColumnName);
-            sb.AppendLine(string.Join(",", columnNames));
-
-            foreach (System.Data.DataRow row in dt.Rows)
-            {
-                IEnumerable<string> fields = row.ItemArray.Select(field => field.ToString());
-                sb.AppendLine(string.Join(",", fields));
-            }
-
-            File.WriteAllText(path + dt.TableName + ".csv", sb.ToString());
-        }
         public static void Schedule()
         {
             if(!Directory.Exists(ConfigurationManager.AppSettings["DownloadPath"]))
@@ -72,25 +56,29 @@ namespace OverWatcher.TheICETrade
                 Console.WriteLine("Clean up old Excel..");
                 p.cleanUpExcel();
                 p.run();
-                if (ConfigurationManager.AppSettings["EnableComparison"] != "true")
+                using (ExcelParser parser = new ExcelParser())
                 {
-                    Console.WriteLine("Parse downloaded Excel into CSV..");
-                    new ExcelParser().SaveAsCSV();
-                }
-                else
-                {
-                    Console.WriteLine("Query the Oracle Database..");
-                    try
+                    if (ConfigurationManager.AppSettings["EnableComparison"] != "true")
                     {
-                        var DBResult = p.QueryDB();
-                        var ICEResult = new ExcelParser().GetDataTable();
+                        Console.WriteLine("Parse downloaded Excel into CSV..");
+                        parser.SaveAsCSV();
                     }
-                    catch(Exception ex)
+                    else
                     {
-                        Console.WriteLine("Comparison Failed..");
-                        Console.WriteLine(ex.Message);
-                    }
+                        Console.WriteLine("Query the Oracle Database..");
+                        try
+                        {
+                            var DBResult = p.QueryDB();
+                            var ICEResult = parser.GetDataTableList();
+                            Console.WriteLine("Comparing..");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine("Comparison Failed..");
+                            Console.WriteLine(ex.Message);
+                        }
 
+                    }
                 }
                 if (interval < 1) return;
                 Console.WriteLine(string.Format(
@@ -104,18 +92,33 @@ namespace OverWatcher.TheICETrade
         {
             var conn = DBConnector.Instance;
             var dtList = new List<DataTable>();
-            foreach (string company in CompanyList)
+            foreach (CompanyName company in Enum.GetValues(typeof(CompanyName)))
             {
-                foreach(string product in ProductList)
+                foreach(ProductType product in Enum.GetValues(typeof(ProductType)))
                 {
-                    string label = company + product + "Query";
-                    dtList.Add(conn.MakeQuery(ConfigurationManager.AppSettings[label], label));
-                    save("", dtList.Last());
+                    string name = company.ToString() + product.ToString();
+                    dtList.Add(conn.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
+                    if(ConfigurationManager.AppSettings["EnableSaveDBResult"] == "true")
+                    {
+                        HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last());
+                    }
                 }
             }
             return dtList;
         }
 
+        #region Comparsion
+        private DataTable CompareDataTable(DataTable t1, DataTable t2)
+        {
+            return null;
+        }
+        private int CompareCount(DataTable t1, DataTable t2)
+        {
+            return 0;
+        }
+
+        private 
+        #endregion
         public void run()
         {
             var thread = new Thread(AnalyzeWebsite);
