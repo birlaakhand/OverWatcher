@@ -116,8 +116,6 @@ namespace OverWatcher.TheICETrade
         {
             return 0;
         }
-
-        private 
         #endregion
         public void run()
         {
