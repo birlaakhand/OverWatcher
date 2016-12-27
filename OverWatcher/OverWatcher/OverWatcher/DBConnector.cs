@@ -11,34 +11,12 @@ namespace OverWatcher
 {
     sealed class DBConnector
     {
-        readonly string Hostname = ConfigurationManager.AppSettings["DBHostName"];
-        readonly string Port = ConfigurationManager.AppSettings["DBPort"];
-        readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
-        readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
-        readonly string SID = ConfigurationManager.AppSettings["DBSID"];
-        private static DBConnector instance;
-        private static OracleConnection connection;
-        private DBConnector()
-        {
-            BuildConnection();
-        }
-        ~DBConnector()
-        {
-            connection.Dispose();
-            connection.Close();
-        }
-        public static DBConnector Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new DBConnector();
-                }
-                return instance;
-            }
-        }
-        private void BuildConnection()
+        static readonly string Hostname = ConfigurationManager.AppSettings["DBHostName"];
+        static readonly string Port = ConfigurationManager.AppSettings["DBPort"];
+        static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
+        static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
+        static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
+        private static OracleConnection BuildConnection()
         {
             string connectionString = string.Format(
                                        ConfigurationManager.ConnectionStrings["OracleConnectionString"].ConnectionString,
@@ -48,7 +26,7 @@ namespace OverWatcher
                                        Port.ToString(),
                                        SID
                 );
-            connection = new OracleConnection();
+            OracleConnection connection = new OracleConnection();
             connection.ConnectionString = connectionString;
 
             try
@@ -60,17 +38,18 @@ namespace OverWatcher
                 Console.WriteLine(ex.ToString());
                 connection.Dispose();
                 connection = null;
-                instance = null;
                 throw ex; 
             }
+            return connection;
         }
-        public DataTable MakeQuery(string query, string tableName)
+        public static DataTable MakeQuery(string query, string tableName)
         {
             OracleCommand cmd = new OracleCommand();
             DataTable dataTable = new DataTable();
             dataTable.TableName = tableName;
             try
             {
+                var connection = BuildConnection();
                 if (connection != null)
                 {
                     cmd.Connection = connection;
@@ -98,6 +77,8 @@ namespace OverWatcher
                             Console.WriteLine(0);
                         }
                     }
+                    connection.Dispose();
+                    connection.Close();
                     return dataTable;
                 }
 

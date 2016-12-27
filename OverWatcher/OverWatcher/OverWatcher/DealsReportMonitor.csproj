@@ -99,6 +99,7 @@
     <Compile Include="ExcelParser.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="OracleQueryAbortException.cs" />
+    <Compile Include="DealsReportMonitor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
