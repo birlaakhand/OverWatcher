@@ -20,7 +20,8 @@ namespace OverWatcher.TheICETrade
     {
         private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
-       
+        private int futures = 0;
+        private int cleared = 0;
         private Dictionary<string, string> NameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
@@ -54,11 +55,17 @@ namespace OverWatcher.TheICETrade
                 Console.WriteLine("Clean up old Excel..");
                 p.cleanUpTempFolder();
                 p.run();
+                if(ConfigurationManager.AppSettings["EnableOutputCountToFile"].ToString()
+                     == "true")
+                {
+                    p.OutputCountToFile();
+                }
+                Console.WriteLine("Analyzing Downloaded Excels and Extracting Data...");
                 using (ExcelParser parser = new ExcelParser())
                 {
                     if (ConfigurationManager.AppSettings["EnableComparison"] != "true")
                     {
-                        Console.WriteLine("Parse downloaded Excel into CSV..");
+                        Console.WriteLine("Saving Data into CSV..");
                         parser.SaveAsCSV();
                     }
                     else
@@ -74,7 +81,7 @@ namespace OverWatcher.TheICETrade
                                 parser.SaveAsCSV();
                             }
                             new DataTableComparator().Compare(DBResult, ICEResult);
-                            Console.WriteLine("Comparing..");
+                            Console.WriteLine("Comparing ICE and Oracle...");
                         }
                         catch (Exception ex)
                         {
@@ -124,7 +131,7 @@ namespace OverWatcher.TheICETrade
             thread.Join();
 
         }
-
+        #region Login
         private void BuildPostLoad(out string post, string otp)
         {
             post =
@@ -292,7 +299,7 @@ namespace OverWatcher.TheICETrade
                 return null;
             }
         }
-
+        #endregion
         private void AnalyzeWebsite()
         {
             try
@@ -349,8 +356,6 @@ namespace OverWatcher.TheICETrade
             scriptTask = await wb.EvaluateScriptAsync(
                     "document.getElementById('tradeEndDate').value = '"
                      + DateTime.Now.ToString("dd-MMM-yyyy") + "'");
-            int futures = 0;
-            int cleared = 0;
             for (int i = 0; i < 2; ++i)
             {
                 int temp = i;
@@ -395,9 +400,7 @@ namespace OverWatcher.TheICETrade
                 DownloadFileName = "";
             }
             Console.WriteLine("Future count:" + futures);
-            Console.WriteLine("Cleared count:" + cleared);
-            OutputTo(futures.ToString(), cleared.ToString().Split("[".ToCharArray())
-                                    .Where(name => !string.IsNullOrEmpty(name)).FirstOrDefault());
+            Console.WriteLine("Cleared count:" + cleared);            
             _pageAnalyzeFinished.Set();
         }
 
@@ -467,6 +470,12 @@ namespace OverWatcher.TheICETrade
             File.WriteAllText(outputPath, csv.ToString());
 
         }
+        public void OutputCountToFile()
+        {
+            OutputTo(this.futures.ToString(), this.cleared.ToString().Split("[".ToCharArray())
+                                    .Where(name => !string.IsNullOrEmpty(name)).FirstOrDefault());
+        }
+
         private class DownloadHandler : IDownloadHandler
         {
             DealsReportMonitor drm;

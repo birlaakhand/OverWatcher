@@ -10,24 +10,14 @@ namespace OverWatcher.TheICETrade
     class DataTableComparator
     {
 
-        #region Comparsion
-        public DataTable CompareDataTable(DataTable t1, DataTable t2)
-        {
-            return null;
-        }
-        public int CompareCount(DataTable t1, DataTable t2)
-        {
-            return 0;
-        }
-        public void Compare(List<DataTable> lt1, List<DataTable> lit2)
+        public void Compare(List<DataTable> ice, List<DataTable> oracle)
         {
 
         }
-        #endregion
 
-        public void MergeLegIDAndDealID(List<DataTable> lt1)
+        public void MergeLegIDAndDealID(List<DataTable> ice)
         {
-            lt1 = lt1.Select(t =>
+            ice = ice.Select(t =>
             {
                 foreach (DataRow row in t.Rows)
                 {
