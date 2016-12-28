@@ -33,9 +33,9 @@ namespace OverWatcher.TheICETrade
             OutputPath = Path.IsPathRooted(ConfigurationManager.AppSettings["OutputFolderPath"]) ?
                 ConfigurationManager.AppSettings["OutputFolderPath"] :
                 basePath + ConfigurationManager.AppSettings["OutputFolderPath"].Substring(1);
-            DownloadPath = Path.IsPathRooted(ConfigurationManager.AppSettings["DownloadPath"]) ?
-                ConfigurationManager.AppSettings["DownloadPath"] :
-                basePath + ConfigurationManager.AppSettings["DownloadPath"].Substring(1);
+            DownloadPath = Path.IsPathRooted(ConfigurationManager.AppSettings["TempFolderPath"]) ?
+                ConfigurationManager.AppSettings["TempFolderPath"] :
+                basePath + ConfigurationManager.AppSettings["TempFolderPath"].Substring(1);
             init();
         }
         #endregion
@@ -115,6 +115,9 @@ namespace OverWatcher.TheICETrade
             range.Copy(to);                       
             target.SaveAs(OutputPath 
                 + name + type + ".csv", XlFileFormat.xlCSVWindows);
+            target.Close(false, Type.Missing, Type.Missing);
+            Marshal.FinalReleaseComObject(sheet);
+            Marshal.FinalReleaseComObject(target);
         }
 
         private System.Data.DataTable RangeToDataTable(CompanyName name, ProductType type, Range range)
@@ -122,16 +125,18 @@ namespace OverWatcher.TheICETrade
             System.Data.DataTable dataTable = new System.Data.DataTable();
             dataTable.TableName = "" + name + type;
             object[,] rawData = (object[,])range.Value2;
-            for(int i = 0; i < rawData.GetLength(1); ++i)
+            for(int i = 1; i <= rawData.GetLength(1); ++i)
             {
-                dataTable.Columns.Add(rawData[0,i].ToString(), rawData[1,i].GetType());
+                if (rawData[1, i] == null) continue;
+                dataTable.Columns.Add(rawData[1, i].ToString(), rawData[1,i].GetType());
             }
-            for(int i = 1; i < rawData.GetLength(0); ++i)
+            for(int i = 2; i <= rawData.GetLength(0); ++i)
             {
                 DataRow row = dataTable.NewRow();
-                for(int j = 0; j < rawData.GetLength(1); ++j)
+                for(int j = 1; j <= rawData.GetLength(1); ++j)
                 {
-                    row[rawData[0, i].ToString()] = rawData[i, j];
+                    if (rawData[1, j] == null) continue;
+                    row[rawData[1, j].ToString()] = rawData[i, j];
                 }
                 dataTable.Rows.Add(row);
             }
@@ -231,6 +236,10 @@ namespace OverWatcher.TheICETrade
                         workbook.Close(0);
                         Marshal.FinalReleaseComObject(workbook);
 
+                    }
+                    foreach(var pair in RangeTable)
+                    {
+                        Marshal.ReleaseComObject(pair.Value);
                     }
                     excel.Quit();
                     Marshal.FinalReleaseComObject(excel);

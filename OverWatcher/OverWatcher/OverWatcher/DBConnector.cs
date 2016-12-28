@@ -9,13 +9,18 @@ using Oracle.ManagedDataAccess.Client;
 
 namespace OverWatcher
 {
-    sealed class DBConnector
+    sealed class DBConnector :IDisposable
     {
         static readonly string Hostname = ConfigurationManager.AppSettings["DBHostName"];
         static readonly string Port = ConfigurationManager.AppSettings["DBPort"];
         static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
         static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
         static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
+        private OracleConnection connection = null;
+        public DBConnector()
+        {
+            connection = BuildConnection();
+        }
         private static OracleConnection BuildConnection()
         {
             string connectionString = string.Format(
@@ -42,14 +47,13 @@ namespace OverWatcher
             }
             return connection;
         }
-        public static DataTable MakeQuery(string query, string tableName)
+        public DataTable MakeQuery(string query, string tableName)
         {
             OracleCommand cmd = new OracleCommand();
             DataTable dataTable = new DataTable();
             dataTable.TableName = tableName;
             try
             {
-                var connection = BuildConnection();
                 if (connection != null)
                 {
                     cmd.Connection = connection;
@@ -71,14 +75,10 @@ namespace OverWatcher
                             foreach(string col in columns)
                             {
                                 row[col] = reader[col];
-                                Console.Write(row[col]);
                             }
                             dataTable.Rows.Add(row);
-                            Console.WriteLine(0);
                         }
                     }
-                    connection.Dispose();
-                    connection.Close();
                     return dataTable;
                 }
 
@@ -92,6 +92,43 @@ namespace OverWatcher
                 throw new OracleQueryAbortException(ex.ToString());
             }
 
-        } 
+        }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    connection?.Dispose();
+                    connection?.Close();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~DBConnector() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }

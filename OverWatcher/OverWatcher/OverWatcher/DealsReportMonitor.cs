@@ -20,27 +20,31 @@ namespace OverWatcher.TheICETrade
     {
         private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
-        private AutoResetEvent _pageAnalyzeFinished = new AutoResetEvent(false);
-        public static bool isDownloadCompleted = false;
+       
         private Dictionary<string, string> NameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
         };
-
+        #region Thread Share Fields
+        internal volatile bool isDownloadCompleted = false;
+        internal volatile string DownloadFileName = "";
+        private AutoResetEvent _pageAnalyzeFinished = new AutoResetEvent(false);
+        #endregion
 
         public static void Schedule()
         {
-            if(!Directory.Exists(ConfigurationManager.AppSettings["DownloadPath"]))
+            if(!Directory.Exists(ConfigurationManager.AppSettings["TempFolderPath"]))
             {
-                Directory.CreateDirectory(ConfigurationManager.AppSettings["DownloadPath"]);
+                Directory.CreateDirectory(ConfigurationManager.AppSettings["TempFolderPath"]);
             }
             if(!Directory.Exists(ConfigurationManager.AppSettings["OutputFolderPath"]))
             {
                 Directory.CreateDirectory(ConfigurationManager.AppSettings["OutputFolderPath"]);
             }
 
-            int interval = int.Parse(ConfigurationManager.AppSettings["ScheduleInterval"]);
+            int interval = 0;
+            int.TryParse(ConfigurationManager.AppSettings["ScheduleInterval"], out interval);
             while (true)
             {
 
@@ -48,7 +52,7 @@ namespace OverWatcher.TheICETrade
                         DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
                 DealsReportMonitor p = new DealsReportMonitor();
                 Console.WriteLine("Clean up old Excel..");
-                p.cleanUpExcel();
+                p.cleanUpTempFolder();
                 p.run();
                 using (ExcelParser parser = new ExcelParser())
                 {
@@ -64,13 +68,18 @@ namespace OverWatcher.TheICETrade
                         {
                             var DBResult = p.QueryDB();
                             var ICEResult = parser.GetDataTableList();
-                            p.Compare(DBResult, ICEResult);
+                            if(ConfigurationManager.AppSettings["EnableSaveICEResult"]
+                                 == "true")
+                            {
+                                parser.SaveAsCSV();
+                            }
+                            new DataTableComparator().Compare(DBResult, ICEResult);
                             Console.WriteLine("Comparing..");
                         }
                         catch (Exception ex)
                         {
                             Console.WriteLine("Comparison Failed..");
-                            Console.WriteLine(ex.Message);
+                            Console.WriteLine(ex);
                         }
 
                     }
@@ -90,35 +99,23 @@ namespace OverWatcher.TheICETrade
         public List<DataTable> QueryDB()
         {
             var dtList = new List<DataTable>();
-            foreach (CompanyName company in Enum.GetValues(typeof(CompanyName)))
+            using (DBConnector db = new DBConnector())
             {
-                foreach(ProductType product in Enum.GetValues(typeof(ProductType)))
+                foreach (CompanyName company in Enum.GetValues(typeof(CompanyName)))
                 {
-                    string name = company.ToString() + product.ToString();
-                    dtList.Add(DBConnector.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
-                    if(ConfigurationManager.AppSettings["EnableSaveDBResult"] == "true")
+                    foreach (ProductType product in Enum.GetValues(typeof(ProductType)))
                     {
-                        HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last());
+                        string name = company.ToString() + product.ToString();
+                        dtList.Add(db.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
+                        if (ConfigurationManager.AppSettings["EnableSaveDBResult"] == "true")
+                        {
+                            HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last());
+                        }
                     }
                 }
             }
-            return dtList;
+                return dtList;
         }
-
-        #region Comparsion
-        private DataTable CompareDataTable(DataTable t1, DataTable t2)
-        {
-            return null;
-        }
-        private int CompareCount(DataTable t1, DataTable t2)
-        {
-            return 0;
-        }
-        private void Compare(List<DataTable> lt1, List<DataTable> lit2)
-        {
-
-        }
-        #endregion
         public void run()
         {
             var thread = new Thread(AnalyzeWebsite);
@@ -206,6 +203,7 @@ namespace OverWatcher.TheICETrade
                 }
                 #endregion
                 #region Get SSO Token
+                DateTime requestTime = DateTime.UtcNow;
                 string SSOUrl = ConfigurationManager.AppSettings["SSOUrl"];
                 string post = "";
                 BuildPostLoad(out post, null);
@@ -213,9 +211,22 @@ namespace OverWatcher.TheICETrade
                 response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
                 if (GetResponseString(response).Contains("Re-login with 2FA passcode"))
                 {
-                    OutputTo("OTP", "Expired");
-                    Console.WriteLine("Please enter OTP:");
-                    string otp = Console.ReadLine();
+                    //OutputTo("OTP", "Expired");
+                    Console.WriteLine("OTP Expired, Get OTP from Outlook");
+                    string otp = "";
+                    using (EmailHandler email = new EmailHandler())
+                    {
+                        otp = email.GetOTP(requestTime).ToString();
+                    }
+                    if(otp == "")
+                    {
+                        Console.WriteLine("Please enter OTP:");
+                        otp = Console.ReadLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("OTP successfully load from Outlook");
+                    }
                     response.Close();
                     BuildPostLoad(out post, otp);
                     encodedPost = System.Text.Encoding.UTF8.GetBytes(post);
@@ -305,9 +316,8 @@ namespace OverWatcher.TheICETrade
 
                 }
                 var browser = new ChromiumWebBrowser(_url + "reports/DealReport.shtml?");
-                browser.DownloadHandler = new DownloadHandler();
+                browser.DownloadHandler = new DownloadHandler(this);
                 browser.LoadingStateChanged += analyzePage;
-                //browser.Load(_url + "reports/DealReport.shtml?");
                 _pageAnalyzeFinished.WaitOne();
                 browser.Dispose();
                 System.Windows.Forms.Application.ExitThread();
@@ -317,9 +327,9 @@ namespace OverWatcher.TheICETrade
                 Console.WriteLine(ex);
             }
         }
-        private void cleanUpExcel()
+        private void cleanUpTempFolder()
         {
-            System.IO.DirectoryInfo di = new DirectoryInfo(ConfigurationManager.AppSettings["DownloadPath"]);
+            System.IO.DirectoryInfo di = new DirectoryInfo(ConfigurationManager.AppSettings["TempFolderPath"]);
 
             foreach (FileInfo file in di.GetFiles())
             {
@@ -382,6 +392,7 @@ namespace OverWatcher.TheICETrade
                  "document.getElementById('companyId').options[{0}].innerHTML", temp));
                 RenameExcel(NameMap[NameMap.Keys.Where(key => scriptTask.Result.ToString().Contains(key)).FirstOrDefault()]);
                 isDownloadCompleted = false;
+                DownloadFileName = "";
             }
             Console.WriteLine("Future count:" + futures);
             Console.WriteLine("Cleared count:" + cleared);
@@ -392,14 +403,14 @@ namespace OverWatcher.TheICETrade
 
         private void RenameExcel(string name)
         {
-            var excelFiles = Directory.GetFiles(ConfigurationManager.AppSettings["DownloadPath"], "*"
+            var excelFiles = Directory.GetFiles(ConfigurationManager.AppSettings["TempFolderPath"], "*"
                 + ConfigurationManager.AppSettings["DownloadedFileType"])
                                      .Select(Path.GetFileName);
             foreach (var file in excelFiles)
             {
-                if (file != "DealReport.xls") continue;
-                System.IO.File.Move(ConfigurationManager.AppSettings["DownloadPath"] + file,
-                    ConfigurationManager.AppSettings["DownloadPath"] +
+                if (file != DownloadFileName) continue;
+                System.IO.File.Move(ConfigurationManager.AppSettings["TempFolderPath"] + file,
+                    ConfigurationManager.AppSettings["TempFolderPath"] +
                     Path.GetFileNameWithoutExtension(file) + "_" + name
                      + Path.GetExtension(file));
             }
@@ -423,7 +434,7 @@ namespace OverWatcher.TheICETrade
             task.Dispose();        
 
             // Tell Windows to launch the saved image.
-            if (ConfigurationManager.AppSettings["IsOpenScreenShot"]
+            if (ConfigurationManager.AppSettings["EnableOpenScreenShot"]
                     == "true")
             {
                 Console.WriteLine("Screenshot saved.  Launching your default image viewer...");
@@ -458,13 +469,15 @@ namespace OverWatcher.TheICETrade
         }
         private class DownloadHandler : IDownloadHandler
         {
+            DealsReportMonitor drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
                 if (!callback.IsDisposed)
                 {
                     using (callback)
                     {
-                        callback.Continue(ConfigurationManager.AppSettings["DownloadPath"] +
+                        drm.DownloadFileName = downloadItem.SuggestedFileName;
+                        callback.Continue(ConfigurationManager.AppSettings["TempFolderPath"] +
                                             downloadItem.SuggestedFileName, showDialog: false);
                     }
                 }
@@ -474,8 +487,13 @@ namespace OverWatcher.TheICETrade
             {
                 if (downloadItem.IsComplete)
                 {
-                    DealsReportMonitor.isDownloadCompleted = true;
+                    drm.isDownloadCompleted = true;
                 }
+            }
+
+            public DownloadHandler(DealsReportMonitor drm)
+            {
+                this.drm = drm;
             }
         }
 
