@@ -60,28 +60,31 @@ namespace OverWatcher.TheICETrade
                 {
                     p.OutputCountToFile();
                 }
-                Console.WriteLine("Analyzing Downloaded Excels and Extracting Data...");
                 using (ExcelParser parser = new ExcelParser())
                 {
                     if (ConfigurationManager.AppSettings["EnableComparison"] != "true")
                     {
-                        Console.WriteLine("Saving Data into CSV..");
                         parser.SaveAsCSV();
                     }
                     else
                     {
-                        Console.WriteLine("Query the Oracle Database..");
                         try
                         {
-                            var DBResult = p.QueryDB();
-                            var ICEResult = parser.GetDataTableList();
-                            if(ConfigurationManager.AppSettings["EnableSaveICEResult"]
-                                 == "true")
+                            if (ConfigurationManager.AppSettings["EnableSaveICEResult"] == "true")
                             {
                                 parser.SaveAsCSV();
                             }
-                            new DataTableComparator().Compare(DBResult, ICEResult);
-                            Console.WriteLine("Comparing ICE and Oracle...");
+                            var DBResult = p.QueryDB();
+                            var ICEResult = parser.GetDataTableList();
+                            var diff = new DataTableComparator().Diff(DBResult, ICEResult);
+                            if (ConfigurationManager.AppSettings["EnableSendDiffByEmail"] == "true")
+                            {
+                                //to-do
+                                using (EmailHandler email = new EmailHandler())
+                                {
+                                    email.SendDiff(diff);
+                                }
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -105,6 +108,7 @@ namespace OverWatcher.TheICETrade
         }
         public List<DataTable> QueryDB()
         {
+            Console.WriteLine("Query the Oracle Database..");
             var dtList = new List<DataTable>();
             using (DBConnector db = new DBConnector())
             {
@@ -116,7 +120,7 @@ namespace OverWatcher.TheICETrade
                         dtList.Add(db.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
                         if (ConfigurationManager.AppSettings["EnableSaveDBResult"] == "true")
                         {
-                            HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last());
+                            HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last(), "_DB");
                         }
                     }
                 }

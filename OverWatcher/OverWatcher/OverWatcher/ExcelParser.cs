@@ -36,15 +36,21 @@ namespace OverWatcher.TheICETrade
             DownloadPath = Path.IsPathRooted(ConfigurationManager.AppSettings["TempFolderPath"]) ?
                 ConfigurationManager.AppSettings["TempFolderPath"] :
                 basePath + ConfigurationManager.AppSettings["TempFolderPath"].Substring(1);
-            init();
+            Init();
+            Extract();
         }
         #endregion
         #region Initialization
-        private void init()
+        private void Init()
         {
+            Console.WriteLine("Initializing Excel Parser...");
             RangeTable = new Dictionary<CompanyName, ProductType, Range>();
             cleanUpCSVFolder();
             excel = new Application();
+        }
+        private void Extract()
+        {
+            Console.WriteLine("Analyzing Downloaded Excels and Extracting Data...");
             foreach (var xls in Directory.GetFiles(DownloadPath, "*"
                 + ConfigurationManager.AppSettings["DownloadedFileType"]))
             {
@@ -84,10 +90,11 @@ namespace OverWatcher.TheICETrade
         }
         public void SaveAsCSV()
         {
+            Console.WriteLine("Saving Data into CSV..");
             RangeTable.GetCollections().ForEach(s =>
             {
                 RangeToCSV(s.Item1, s.Item2, s.Item3);
-                TrimCSV(s.Item1, s.Item2);
+                //TrimCSV(s.Item1, s.Item2);
             });
         }
 

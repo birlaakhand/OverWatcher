@@ -8,6 +8,8 @@ using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Data;
+using OverWatcher.TheICETrade;
 
 namespace OverWatcher
 {
@@ -27,6 +29,24 @@ namespace OverWatcher
 
         } 
 
+        public void SendDiff(List<DataTable> diff)
+        {
+            
+            MailItem mailItem = outlook.CreateItem(OlItemType.olMailItem);
+            mailItem.Subject = "ICE Oracle Monitor Result";
+            mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
+            mailItem.Body = string.Join(Environment.NewLine, diff.Select(d => HelperFunctions.DataTableToHTML(d)));
+            mailItem.Importance = OlImportance.olImportanceNormal;
+            string path = ConfigurationManager.AppSettings["TempFolderPath"];
+            diff.ForEach(d => mailItem.Attachments
+                                    .Add(HelperFunctions
+                                    .saveDataTableToCSV(path, d, "_diff"), OlAttachmentType.olByValue));
+            mailItem.Display(false);
+            mailItem.Send();
+            mailItem.Close(OlInspectorClose.olDiscard);
+            Marshal.FinalReleaseComObject(mailItem);
+
+        }
         public string GetOTP(DateTime requestTime)
         {
             string otp = "";
@@ -57,6 +77,8 @@ namespace OverWatcher
             {
                 otp = result;
             }
+            mail.Close(OlInspectorClose.olDiscard);
+            Marshal.FinalReleaseComObject(mail);
             return otp;
         }
 
