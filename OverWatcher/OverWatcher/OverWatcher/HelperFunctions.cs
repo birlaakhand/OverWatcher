@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace OverWatcher.TheICETrade
     public enum SortDirection { ASC, DESC };
     class HelperFunctions
     {
-        public static string saveDataTableToCSV(string path, DataTable dt, string fileNamePostfx)
+        public static string saveDataTableToCSV(DataTable dt, string fileNamePostfx)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -24,7 +25,7 @@ namespace OverWatcher.TheICETrade
                 IEnumerable<string> fields = row.ItemArray.Select(field => WrapCSVCell(field.ToString()));
                 sb.AppendLine(string.Join(",", fields));
             }
-            string savePath = path + dt.TableName + fileNamePostfx + ".csv";
+            string savePath = ConfigurationManager.AppSettings["OutputFolderPath"] + dt.TableName + fileNamePostfx + ".csv";
             File.WriteAllText(savePath, sb.ToString());
             return savePath;
         }
