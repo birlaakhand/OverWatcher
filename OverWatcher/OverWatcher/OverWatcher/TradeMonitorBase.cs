@@ -26,10 +26,8 @@ namespace OverWatcher
 
         public void LogCount()
         {
-            log.Info(MonitorTitle + "   Count:" 
-                                + Environment.NewLine
-                                + "Future count:" + futures
-                                + Environment.NewLine
+            log.Info(MonitorTitle + " Future count:" + futures
+                                + "   "
                                 + "Cleared count:" + swap);
         }
     }

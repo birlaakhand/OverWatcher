@@ -191,7 +191,7 @@ namespace OverWatcher.TheICETrade
             if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
             try
             {
-                Console.Out.Write("Writing cookies to disk... ");
+                log.Info("Writing cookies to disk... ");
                 if (!File.Exists(file))
                 {
                     File.WriteAllText(file, cookieJar);

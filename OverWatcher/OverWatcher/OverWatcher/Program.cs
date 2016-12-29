@@ -80,7 +80,7 @@ namespace OverWatcher
                         DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
                 LoadOptions();
                 WebTradeMonitor p = new WebTradeMonitor();
-                log.Info("Clean up old Excel..");
+                log.Info("Clean up old Excel...");
                 CleanUpTempFolder();
                 p.run();
                 p.LogCount();
@@ -93,12 +93,12 @@ namespace OverWatcher
                         parser.SaveAsCSV();
                         if (!EnableEmail)
                         {
-                            log.Info("Saving Count Result..");
+                            log.Info("Saving Count Result...");
                             p.OutputCountToFile();
                         }
                         else
                         {
-                            log.Info("Add Count Result To Email..");
+                            log.Info("Add Count Result To Email...");
                             using (EmailHandler email = new EmailHandler())
                             {
                                 email.SendResultEmail(p.CountToHTML(), null);
@@ -107,7 +107,7 @@ namespace OverWatcher
                     }
                     else
                     {
-                        log.Info("Start Comparison..");
+                        log.Info("Start Comparison...");
                         try
                         {
                             OracleDBMonitor db = new OracleDBMonitor();
@@ -119,13 +119,13 @@ namespace OverWatcher
                             if (EnableEmail)
                             {
                                 //to-do
-                                log.Info("Email Enabled..");
+                                log.Info("Email Enabled...");
                                 using (EmailHandler email = new EmailHandler())
                                 {
-                                    log.Info("Add Count Result To Email..");
-                                    log.Info("Add Comparison Result To Email..");
+                                    log.Info("Add Count Result To Email...");
+                                    log.Info("Add Comparison Result To Email...");
                                     var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
-                                    log.Info("Add Comparison Result To Attachment..");
+                                    log.Info("Add Comparison Result To Attachment...");
                                     email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), attachmentPaths);
                                 }
                             }
