@@ -127,8 +127,8 @@ namespace OverWatcher.TheICETrade
                     else
                     {
                         File.Delete(_defaultCookiePath);
-                        OutputTo(ConfigurationManager.AppSettings["OTPExpired"],
-                            ConfigurationManager.AppSettings["OTPExpired"]);
+                        OutputTo(ConfigurationManager.AppSettings["OTPExpiredAlertMessage"],
+                            ConfigurationManager.AppSettings["OTPExpiredAlertMessage"]);
                     }
                     response.Close();
                 }
@@ -146,7 +146,6 @@ namespace OverWatcher.TheICETrade
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
                     {
-                        DisposableCleaner.ManageDisposable(email);
                         otp = email.GetOTP(requestTime).ToString();
                     }
                     if(otp == "")
@@ -304,7 +303,10 @@ namespace OverWatcher.TheICETrade
                 }
                 f = (scriptTask.Result as string);
                 swap += int.Parse(f.Substring(1, f.Length - 2));
-                await SavePageScreenShot(wb, temp);
+                if(ConfigurationManager.AppSettings["EnableSaveWebpageScreenShot"] == "true")
+                {
+                    await SavePageScreenShot(wb, temp);
+                }
                 wb.LoadingStateChanged -= AnalyzePage;
                 await wb.EvaluateScriptAsync(
                     "document.getElementsByClassName('js-download-deals')[1].click();");
@@ -349,15 +351,12 @@ namespace OverWatcher.TheICETrade
 
             // We no longer need the Bitmap.
             // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
-            task.Dispose();        
-
+            task.Dispose();
+#if DEBUG
             // Tell Windows to launch the saved image.
-            if (ConfigurationManager.AppSettings["EnableOpenScreenShot"]
-                    == "true")
-            {
-                log.Info("Screenshot saved.  Launching your default image viewer...");
-                System.Diagnostics.Process.Start(screenshotPath);
-            }
+            log.Info("Screenshot saved.  Launching your default image viewer...");
+            System.Diagnostics.Process.Start(screenshotPath);
+#endif
             return Task.FromResult<object>(null);
         }
 

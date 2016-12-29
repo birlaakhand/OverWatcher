@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
-using System.Windows.Forms;
 namespace OverWatcher
 {
 
@@ -40,9 +39,16 @@ namespace OverWatcher
         #endregion
         private static void Main(string[] args)
         {
-            AppDomain.CurrentDomain.ProcessExit += DisposableCleaner.OnClose;
-            Schedule();
-            Terminate();
+            if (ConfigurationManager.AppSettings["EnableRunAsConsoleApplication"] != "true")
+                // running as service
+                using (var service = new Service())
+                    ServiceBase.Run(service);
+            else
+            {
+                // running as console app
+                Start(args);
+                Stop();
+            }
         }
 
 
@@ -72,6 +78,10 @@ namespace OverWatcher
             {
                 Directory.CreateDirectory(ConfigurationManager.AppSettings["OutputFolderPath"]);
             }
+            if (!Directory.Exists(ConfigurationManager.AppSettings["PersistentFolderPath"]))
+            {
+                Directory.CreateDirectory(ConfigurationManager.AppSettings["PersistentFolderPath"]);
+            }
 
             int interval = 0;
             int.TryParse(ConfigurationManager.AppSettings["ScheduleInterval"], out interval);
@@ -82,13 +92,12 @@ namespace OverWatcher
                         DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
                 LoadOptions();
                 WebTradeMonitor p = new WebTradeMonitor();
-                log.Info("Clean up old Excel...");
+                log.Info("Clean up Temp Folder...");
                 CleanUpTempFolder();
                 p.run();
                 p.LogCount();
                 using (ExcelParser parser = new ExcelParser())
                 {
-                    DisposableCleaner.ManageDisposable(parser);
                     if (!EnableComparison)
                     {
                         log.Info("Non Comparison Mode");
@@ -104,7 +113,6 @@ namespace OverWatcher
                             log.Info("Add Count Result To Email...");
                             using (EmailHandler email = new EmailHandler())
                             {
-                                DisposableCleaner.ManageDisposable(email);
                                 email.SendResultEmail(p.CountToHTML(), null);
                             }
                         }
@@ -126,7 +134,6 @@ namespace OverWatcher
                                 log.Info("Email Enabled...");
                                 using (EmailHandler email = new EmailHandler())
                                 {
-                                    DisposableCleaner.ManageDisposable(email);
                                     log.Info("Add Count Result To Email...");
                                     log.Info("Add Comparison Result To Email...");
                                     var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
@@ -151,7 +158,7 @@ namespace OverWatcher
                 }
                 if (interval < 1) return;
                 log.Info(string.Format(
-                    "Checking Finished, Waiting for next run. Interval = {0} seconds",
+                    "Checking Finished, Waiting for next run. Interval = {0} seconds, Program is safe to quit",
                     int.Parse(ConfigurationManager.AppSettings["ScheduleInterval"])));
                 Thread.Sleep(interval * 1000);
             }
