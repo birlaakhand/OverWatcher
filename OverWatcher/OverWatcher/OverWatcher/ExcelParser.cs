@@ -13,7 +13,7 @@ using System.Data;
 using Microsoft.VisualBasic.FileIO;
 namespace OverWatcher.TheICETrade
 {
-    class ExcelHandler : COMInterfaceBase, IDisposable
+    class ExcelParser : COMInterfaceBase, IDisposable
     {
         #region Members
         private readonly string[] headers = { "Cleared Deals", "Futures Deals" };
@@ -27,7 +27,7 @@ namespace OverWatcher.TheICETrade
         private Dictionary<CompanyName, ProductType, Range> RangeTable;
         #endregion
         #region Constructors
-        public ExcelHandler()
+        public ExcelParser()
         {
             basePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             OutputPath = Path.IsPathRooted(ConfigurationManager.AppSettings["OutputFolderPath"]) ?
