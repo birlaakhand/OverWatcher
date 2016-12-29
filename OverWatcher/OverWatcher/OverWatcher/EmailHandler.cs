@@ -18,6 +18,8 @@ namespace OverWatcher
     {
         private Application outlook;
         private _NameSpace ns = null;
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #region Thread Sync
         private AutoResetEvent syncLock = new AutoResetEvent(false);
         private MailItem awaitingMail = null;
@@ -45,7 +47,7 @@ namespace OverWatcher
         }
         public void SendResultEmail(string body, List<string> attachments)
         {
-            Console.WriteLine("Sending Result Email...");
+            log.Info("Sending Result Email...");
             MailItem mailItem = null;
             try
             {
@@ -59,7 +61,7 @@ namespace OverWatcher
             }
             catch(System.Exception ex)
             {
-                Console.WriteLine("Send Result Email Failed --" + ex);
+                log.Error("Send Result Email Failed --" + ex);
                 this.Dispose();
             }
 
@@ -74,7 +76,7 @@ namespace OverWatcher
                 if (inboxFolder == null) return otp;
                 inboxFolder.Items.Sort("[ReceivedTime]", true);
                 MailItem mail = null;
-                Console.WriteLine("Retreiving OTP Email...");
+                log.Info("Retreiving OTP Email...");
                 for (int i = 1; i <= inboxFolder.Items.Count; ++i)
                 {
                     MailItem tmp = GetCOM<MailItem>(inboxFolder.Items[i]);
@@ -103,7 +105,7 @@ namespace OverWatcher
             }
             catch(System.Exception ex)
             {
-                Console.WriteLine("Retreiving OTP Email Failed --" + ex.Message);
+                log.Warn("Retreiving OTP Email Failed --" + ex.Message);
                 this.Dispose();
                 return otp;
             }

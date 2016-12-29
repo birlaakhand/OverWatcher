@@ -11,9 +11,11 @@ namespace OverWatcher.TheICETrade
     class OracleDBMonitor : TradeMonitorBase
     {
         public OracleDBMonitor() : base("OpenLinkTrade") { }
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public List<DataTable> QueryDB()
         {
-            Console.WriteLine("Query the Oracle Database..");
+            log.Info("Query the Oracle Database..");
             var dtList = new List<DataTable>();
             using (DBConnector db = new DBConnector())
             {

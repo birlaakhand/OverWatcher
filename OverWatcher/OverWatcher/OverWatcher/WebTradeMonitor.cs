@@ -9,7 +9,6 @@ using CefSharp;
 using System.Configuration;
 using System.Threading.Tasks;
 using System.Text;
-using System.Drawing;
 using System.Data;
 
 namespace OverWatcher.TheICETrade
@@ -21,6 +20,8 @@ namespace OverWatcher.TheICETrade
         private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Dictionary<string, string> NameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
@@ -141,7 +142,7 @@ namespace OverWatcher.TheICETrade
                 response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
                 if (GetResponseString(response).Contains("Re-login with 2FA passcode"))
                 {
-                    Console.WriteLine("OTP Expired, Get OTP from Outlook");
+                    log.Info("OTP Expired, Get OTP from Outlook");
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
                     {
@@ -149,12 +150,12 @@ namespace OverWatcher.TheICETrade
                     }
                     if(otp == "")
                     {
-                        Console.WriteLine("Please enter OTP:");
+                        log.Info("Please enter OTP:");
                         otp = Console.ReadLine();
                     }
                     else
                     {
-                        Console.WriteLine("OTP successfully load from Outlook");
+                        log.Info("OTP successfully load from Outlook");
                     }
                     response.Close();
                     BuildPostLoad(out post, otp);
@@ -168,12 +169,12 @@ namespace OverWatcher.TheICETrade
                 collection.SetCookies(new Uri(_url), sso);
                 response.Close();
                 #endregion
-                Console.WriteLine("SSO Cookie is Ready");
+                log.Info("SSO Cookie is Ready");
                 return collection;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                log.Error(ex.ToString());
                 System.Windows.Forms.Application.Exit();
             }
             return null;
@@ -208,7 +209,7 @@ namespace OverWatcher.TheICETrade
             if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
             if (!File.Exists(file))
             {
-                Console.WriteLine("SSO Cookie does not exist, ask for OTP");
+                log.Info("SSO Cookie does not exist, ask for OTP");
                 return null;
             }
             try
@@ -254,7 +255,7 @@ namespace OverWatcher.TheICETrade
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                log.Error(ex);
             }
         }
         private async void AnalyzePage(object s, LoadingStateChangedEventArgs e)
@@ -263,7 +264,7 @@ namespace OverWatcher.TheICETrade
             if (e.IsLoading) return;
             var html = await wb.GetSourceAsync();
             if (html == "<html><head></head><body></body></html>") return;
-            Console.WriteLine("Analyzing Reports");
+            log.Info("Analyzing Reports");
             var scriptTask = await wb.EvaluateScriptAsync(
                 "document.getElementById('tradeBeginDate').value = '"
                  + DateTime.Now.ToString("dd-MMM-yyyy") + "'");
@@ -282,7 +283,7 @@ namespace OverWatcher.TheICETrade
                 scriptTask = await wb.EvaluateScriptAsync(
                             "document.evaluate(\"//a[contains(., 'Show')]\", document, null, XPathResult.ANY_TYPE, null ).iterateNext().click();");
                 JavascriptResponse waitingTask = null;
-                Console.WriteLine("Retrieving Count - " + i);
+                log.Info("Retrieving Count - " + i);
                 while (string.IsNullOrEmpty((waitingTask?.Result as string)))
                 {
 
@@ -339,7 +340,7 @@ namespace OverWatcher.TheICETrade
         string.Format("CefSharp screenshot{0}.png", temp));
 
             Console.WriteLine();
-            Console.WriteLine("Screenshot ready. Saving to {0}", screenshotPath);
+            log.Info(string.Format("Screenshot ready. Saving to {0}", screenshotPath));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
@@ -353,7 +354,7 @@ namespace OverWatcher.TheICETrade
             if (ConfigurationManager.AppSettings["EnableOpenScreenShot"]
                     == "true")
             {
-                Console.WriteLine("Screenshot saved.  Launching your default image viewer...");
+                log.Info("Screenshot saved.  Launching your default image viewer...");
                 System.Diagnostics.Process.Start(screenshotPath);
             }
             return Task.FromResult<object>(null);

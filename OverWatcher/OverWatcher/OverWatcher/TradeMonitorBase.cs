@@ -11,6 +11,8 @@ namespace OverWatcher
         protected int futures = 0;
         protected int swap = 0;
         protected string MonitorTitle = "Base";
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         protected TradeMonitorBase(string title)
         {
             MonitorTitle = title;
@@ -24,7 +26,7 @@ namespace OverWatcher
 
         public void LogCount()
         {
-            Console.WriteLine(MonitorTitle + "   Count:" 
+            log.Info(MonitorTitle + "   Count:" 
                                 + Environment.NewLine
                                 + "Future count:" + futures
                                 + Environment.NewLine
