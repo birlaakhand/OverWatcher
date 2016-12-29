@@ -6,24 +6,53 @@ using System.Configuration;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.ServiceProcess;
 using System.Threading;
-using System.Threading.Tasks;
-
 namespace OverWatcher
 {
+
     class Program
     {
         private static bool EnableComparison;
         private static bool EnableSaveLocal;
         private static bool EnableEmail;
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        #region Service Runner
+        public const string ServiceName = "TradeReconMonitor";
+        public class Service : ServiceBase
+        {
+            public Service()
+            {
+                ServiceName = Program.ServiceName;
+            }
+            protected override void OnStart(string[] args)
+            {
+                Program.Start(args);
+            }
+            protected override void OnStop()
+            {
+                Program.Stop();
+            }
+        }
+        #endregion
         private static void Main(string[] args)
         {
             Schedule();
             Terminate();
         }
 
+        private static void Start(string[] args)
+        {
+            Schedule();
+        }
+
+        private static void Stop()
+        {
+            Terminate();
+        }
         private static void LoadOptions()
         {
             EnableComparison = ConfigurationManager.AppSettings["EnableComparison"] == "true" ? true : false;
@@ -47,28 +76,28 @@ namespace OverWatcher
             while (true)
             {
 
-                Console.WriteLine(string.Format("Run Checking at {0}",
+                log.Info(string.Format("Run Checking at {0}",
                         DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
                 LoadOptions();
                 WebTradeMonitor p = new WebTradeMonitor();
-                Console.WriteLine("Clean up old Excel..");
+                log.Info("Clean up old Excel..");
                 CleanUpTempFolder();
                 p.run();
                 p.LogCount();
                 ExcelParser parser = new ExcelParser();
                 if (!EnableComparison)
                 {
-                    Console.WriteLine("Non Comparison Mode");
-                    Console.WriteLine("Saving To Local...");
+                    log.Info("Non Comparison Mode");
+                    log.Info("Saving To Local...");
                     parser.SaveAsCSV();
                     if (!EnableEmail)
                     {
-                        Console.WriteLine("Saving Count Result..");
+                        log.Info("Saving Count Result..");
                         p.OutputCountToFile();
                     }
                     else
                     {
-                        Console.WriteLine("Add Count Result To Email..");
+                        log.Info("Add Count Result To Email..");
                         using (EmailHandler email = new EmailHandler())
                         {
                             email.SendResultEmail(p.CountToHTML(), null);
@@ -77,7 +106,7 @@ namespace OverWatcher
                 }
                 else
                 {
-                    Console.WriteLine("Start Comparison..");
+                    log.Info("Start Comparison..");
                     try
                     {
                         OracleDBMonitor db = new OracleDBMonitor();
@@ -89,19 +118,19 @@ namespace OverWatcher
                         if (EnableEmail)
                         {
                             //to-do
-                            Console.WriteLine("Email Enabled..");
+                            log.Info("Email Enabled..");
                             using (EmailHandler email = new EmailHandler())
                             {
-                                Console.WriteLine("Add Count Result To Email..");
-                                Console.WriteLine("Add Comparison Result To Email..");
+                                log.Info("Add Count Result To Email..");
+                                log.Info("Add Comparison Result To Email..");
                                 var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
-                                Console.WriteLine("Add Comparison Result To Attachment..");
+                                log.Info("Add Comparison Result To Attachment..");
                                 email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)
                         {
-                            Console.WriteLine("Saving To Local...");
+                            log.Info("Saving To Local...");
                             p.OutputCountToFile();
                             DBResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_DB"));
                             ICEResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_ICE"));
@@ -110,14 +139,13 @@ namespace OverWatcher
                     catch (Exception ex)
                     {
                         parser.Dispose();
-                        Console.WriteLine("Comparison Failed...");
-                        Console.WriteLine(ex);
+                        log.Error("Comparison Failed...   " + ex);
                     }
 
                 }
                 parser.Dispose();
                 if (interval < 1) return;
-                Console.WriteLine(string.Format(
+                log.Info(string.Format(
                     "Checking Finished, Waiting for next run. Interval = {0} seconds",
                     int.Parse(ConfigurationManager.AppSettings["ScheduleInterval"])));
                 Thread.Sleep(interval * 1000);

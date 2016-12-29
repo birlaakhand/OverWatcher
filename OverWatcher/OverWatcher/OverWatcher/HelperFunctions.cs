@@ -12,6 +12,8 @@ namespace OverWatcher.TheICETrade
     public enum SortDirection { ASC, DESC };
     class HelperFunctions
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static string SaveDataTableToCSV(DataTable dt, string fileNamePostfx)
         {
             StringBuilder sb = new StringBuilder();

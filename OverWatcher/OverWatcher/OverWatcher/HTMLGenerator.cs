@@ -9,6 +9,8 @@ namespace OverWatcher
 {
     class HTMLGenerator
     {
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+            (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static string CountToHTML(string source, int swap, int futures)
         {
 
