@@ -25,8 +25,6 @@ namespace OverWatcher.TheICETrade
         private readonly string DownloadPath;
         private Application excel;
         private Dictionary<CompanyName, ProductType, Range> RangeTable;
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
         #region Constructors
         public ExcelHandler()
@@ -45,7 +43,7 @@ namespace OverWatcher.TheICETrade
         #region COM Creation
         private void Init()
         {
-            log.Info("Initializing Excel Parser...");
+            Console.WriteLine("Initializing Excel Parser...");
             RangeTable = new Dictionary<CompanyName, ProductType, Range>();
 
             cleanUpCSVFolder();
@@ -53,7 +51,7 @@ namespace OverWatcher.TheICETrade
         }
         private void Extract()
         {
-            log.Info("Analyzing Downloaded Excels and Extracting Data...");
+            Console.WriteLine("Analyzing Downloaded Excels and Extracting Data...");
             foreach (var xls in Directory.GetFiles(DownloadPath, "*"
                 + ConfigurationManager.AppSettings["DownloadedFileType"]))
             {
@@ -102,7 +100,7 @@ namespace OverWatcher.TheICETrade
         }
         public void SaveAsCSV()
         {
-            log.Info("Saving Data into CSV..");
+            Console.WriteLine("Saving Data into CSV..");
             RangeTable.GetCollections().ForEach(s =>
             {
                 RangeToCSV(s.Item1, s.Item2, s.Item3);
@@ -172,7 +170,7 @@ namespace OverWatcher.TheICETrade
             }
             catch (MalformedLineException)
             {
-                log.Error(string.Format("Line Number: {0} Value: {1}", parser.ErrorLineNumber, parser.ErrorLine));
+                Console.WriteLine("Line Number: {0} Value: {1}", parser.ErrorLineNumber, parser.ErrorLine);
                 return;
             }
 
@@ -245,7 +243,7 @@ namespace OverWatcher.TheICETrade
             {
                 if (disposing)
                 {
-                    log.Info("Closing Excel Parser...");
+                    Console.WriteLine("Closing Excel Parser...");
                     // TODO: dispose managed state (managed objects).
                     CloseCOM(COMCloseType.Exit);
                     excel.Quit();

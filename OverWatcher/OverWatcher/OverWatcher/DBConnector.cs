@@ -11,13 +11,11 @@ namespace OverWatcher
 {
     sealed class DBConnector :IDisposable
     {
-        private static readonly string Hostname = ConfigurationManager.AppSettings["DBHostName"];
-        private static readonly string Port = ConfigurationManager.AppSettings["DBPort"];
-        private static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
-        private static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
-        private static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        static readonly string Hostname = ConfigurationManager.AppSettings["DBHostName"];
+        static readonly string Port = ConfigurationManager.AppSettings["DBPort"];
+        static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
+        static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
+        static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
         private OracleConnection connection = null;
         public DBConnector()
         {
@@ -42,7 +40,7 @@ namespace OverWatcher
             }
             catch (OracleException ex)
             {
-                log.Error(ex.ToString());
+                Console.WriteLine(ex.ToString());
                 connection.Dispose();
                 connection = null;
                 throw ex; 
