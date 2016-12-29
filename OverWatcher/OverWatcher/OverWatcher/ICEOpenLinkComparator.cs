@@ -45,7 +45,7 @@ namespace OverWatcher.TheICETrade
             int iceRowsCount = ice.Rows.Count;
             int oracleCount = 0;
             int iceCount = 0;
-            while (oracleCount < oracleRowsCount)
+            while (oracleCount < oracleRowsCount && iceCount <iceRowsCount)
             {
                 int oc = int.Parse(oracle.Rows[oracleCount]["ICEDEALID"].ToString());
                 int ic = int.Parse(ice.Rows[iceCount]["Deal ID"].ToString());

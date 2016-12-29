@@ -134,7 +134,7 @@ namespace OverWatcher.TheICETrade
                 }
                 #endregion
                 #region Get SSO Token
-                DateTime requestTime = DateTime.UtcNow;
+                DateTime requestTime = DateTime.Now;
                 string SSOUrl = ConfigurationManager.AppSettings["SSOUrl"];
                 string post = "";
                 BuildPostLoad(out post, null);
