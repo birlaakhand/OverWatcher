@@ -10,10 +10,11 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Data;
 using OverWatcher.TheICETrade;
+using System.Diagnostics;
 
 namespace OverWatcher
 {
-    class EmailHandler : IDisposable
+    class EmailHandler : COMInterfaceBase, IDisposable
     {
         private Application outlook;
         private _NameSpace ns = null;
@@ -21,34 +22,44 @@ namespace OverWatcher
         private AutoResetEvent syncLock = new AutoResetEvent(false);
         private MailItem awaitingMail = null;
         private delegate void WaitForNewMailDelegate(object item);
+        private bool isUsingOpenedOutlook = false;
         #endregion
         public EmailHandler()
         {
-            outlook = new Application();
-            ns = outlook.GetNamespace("MAPI");
-
+            OpenOutlook();
+            ns = GetCOM<_NameSpace>(outlook.GetNamespace("MAPI"));
         } 
 
+        private void OpenOutlook()
+        {
+            if(Process.GetProcessesByName("OUTLOOK").Length > 0)
+            {
+                isUsingOpenedOutlook = true;
+                outlook = (Application)Marshal.GetActiveObject("Outlook.Application");
+            }
+            else
+            {
+                outlook = new Application();
+                isUsingOpenedOutlook = false;
+            }
+        }
         public void SendResultEmail(string body, List<string> attachments)
         {
             Console.WriteLine("Sending Result Email...");
             MailItem mailItem = null;
             try
             {
-                mailItem = outlook.CreateItem(OlItemType.olMailItem);
-                mailItem.Subject = "ICE Oracle Monitor Result";
+                mailItem = GetCOM<MailItem>(outlook.CreateItem(OlItemType.olMailItem));
+                mailItem.Subject = "ICE Openlink Trade Recon Results";
                 mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
-                mailItem.Body = body;
+                mailItem.HTMLBody = body;
                 mailItem.Importance = OlImportance.olImportanceNormal;
                 attachments?.ForEach(att => mailItem.Attachments.Add(att));
-                mailItem.Display(false);
                 mailItem.Send();
-                mailItem.Close(OlInspectorClose.olDiscard);
-                Marshal.FinalReleaseComObject(mailItem);
             }
             catch(System.Exception ex)
             {
-                Console.WriteLine("Send Result Email Failed --" + ex.Message);
+                Console.WriteLine("Send Result Email Failed --" + ex);
                 this.Dispose();
             }
 
@@ -58,15 +69,15 @@ namespace OverWatcher
             string otp = "";
             try
             {
-                MAPIFolder inboxFolder = ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox)?
-                            .Folders[ConfigurationManager.AppSettings["OTPInboxFolder"]];
+                MAPIFolder inboxFolder = GetCOM<MAPIFolder>(ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox));
+                inboxFolder = GetCOM<MAPIFolder>(inboxFolder.Folders[ConfigurationManager.AppSettings["OTPInboxFolder"]]);
                 if (inboxFolder == null) return otp;
                 inboxFolder.Items.Sort("[ReceivedTime]", true);
                 MailItem mail = null;
                 Console.WriteLine("Retreiving OTP Email...");
                 for (int i = 1; i <= inboxFolder.Items.Count; ++i)
                 {
-                    MailItem tmp = inboxFolder.Items[i] as MailItem;
+                    MailItem tmp = GetCOM<MailItem>(inboxFolder.Items[i]);
                     if (tmp.ReceivedTime >= requestTime &&
                             tmp.Subject.Contains(ConfigurationManager.AppSettings["OTPEmailSubject"]))
                     {
@@ -87,7 +98,7 @@ namespace OverWatcher
                     otp = result;
                 }
                 mail.Close(OlInspectorClose.olDiscard);
-                Marshal.FinalReleaseComObject(mail);
+                Marshal.ReleaseComObject(mail);
                 return otp;
             }
             catch(System.Exception ex)
@@ -112,7 +123,7 @@ namespace OverWatcher
 
         private void WaitForNewOTPMail(object item)
         {
-            MailItem mail = item as MailItem;
+            MailItem mail = GetCOM<MailItem>(item as MailItem);
             if(mail != null && mail.Subject.Contains(ConfigurationManager.AppSettings["OTPEmailSubject"]))
             {
                 awaitingMail = mail;
@@ -130,9 +141,19 @@ namespace OverWatcher
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    outlook.Quit();
-                    Marshal.FinalReleaseComObject(outlook);
-                    outlook = null;
+                    if(isUsingOpenedOutlook)
+                    {
+                        CloseCOM(COMCloseType.DecrementRefCount);
+                        Marshal.ReleaseComObject(outlook);
+                        outlook = null;
+                    }
+                    else
+                    {
+                        CloseCOM(COMCloseType.Exit);
+                        outlook.Quit();
+                        Marshal.FinalReleaseComObject(outlook);
+                        outlook = null;
+                    }
 
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
@@ -158,6 +179,13 @@ namespace OverWatcher
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
+        }
+        /// <summary>
+        /// Setup the COM type to be call Close()
+        /// </summary>
+        protected override void CleanUpSetup()
+        {
+            closableCOMList.Add(typeof(MailItem));
         }
         #endregion
     }

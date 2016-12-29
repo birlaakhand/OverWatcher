@@ -13,7 +13,7 @@ using System.Data;
 using Microsoft.VisualBasic.FileIO;
 namespace OverWatcher.TheICETrade
 {
-    class ExcelParser : IDisposable
+    class ExcelParser : COMInterfaceBase, IDisposable
     {
         #region Members
         private readonly string[] headers = { "Cleared Deals", "Futures Deals" };
@@ -40,11 +40,12 @@ namespace OverWatcher.TheICETrade
             Extract();
         }
         #endregion
-        #region Initialization
+        #region COM Creation
         private void Init()
         {
             Console.WriteLine("Initializing Excel Parser...");
             RangeTable = new Dictionary<CompanyName, ProductType, Range>();
+
             cleanUpCSVFolder();
             excel = new Application();
         }
@@ -62,23 +63,32 @@ namespace OverWatcher.TheICETrade
                         company = name;
                     }
                 }
-                GetRanges(excel.Workbooks.Open(xls).Worksheets.Item[1]
-                    , company);
+                Workbooks workbooks = GetCOM<Workbooks>(excel.Workbooks);
+                Workbook workbook = GetCOM<Workbook>(workbooks.Open(xls));
+                Sheets sheets = GetCOM<Sheets>(workbook.Worksheets);
+                Worksheet sheet = GetCOM<Worksheet>(sheets.Item[1]);
+                GetRanges(sheet, company);
             }
         }
         private void GetRanges(Worksheet workSheet, CompanyName name)
         {
-            Range range = workSheet.Columns["A", Type.Missing];
+            Range range = GetCOM<Range>(workSheet.Columns["A", Type.Missing]);
             var firstAddr = StringToAddr(
-                range.Find(headers[0], Type.Missing, Type.Missing, XlLookAt.xlWhole).Address);
-            var secondAddr = StringToAddr(range.Find(headers[1], Type.Missing, Type.Missing, XlLookAt.xlWhole).Address);
-            int last = workSheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing).Row;
+                GetCOM<Range>(range.Find(headers[0], Type.Missing, Type.Missing, XlLookAt.xlWhole)).Address);
+            var secondAddr = StringToAddr(GetCOM<Range>(range.Find(headers[1], Type.Missing, Type.Missing, XlLookAt.xlWhole)).Address);
+            int last = GetCOM<Range>(GetCOM<Range>(workSheet.Cells).SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing)).Row;
             RangeTable[name,ProductType.Swap] = SelectRange(workSheet, firstAddr.Item2 + 2, secondAddr.Item2 - 3);
             RangeTable[name, ProductType.Futures] = SelectRange(workSheet, secondAddr.Item2 + 2, last);
         }
+        private Range SelectRange(Worksheet sheet, int startRow, int endRow)
+        {
+            int lastCol = GetCOM<Range>(GetCOM<Range>(sheet.Cells).SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing)).Column;
+            var startCell = GetCOM<Range>(sheet.Cells[startRow, 1]);
+            var endCell = GetCOM<Range>(sheet.Cells[endRow, lastCol]);
+            return GetCOM<Range>(sheet.Range[startCell, endCell]);
+        }
         #endregion
-
-
+        #region Interface
         public List<System.Data.DataTable> GetDataTableList()
         {
             List<System.Data.DataTable> dtList = RangeTable.GetCollections().Select(s => RangeToDataTable(s.Item1, s.Item2, s.Item3)).ToList();
@@ -94,22 +104,15 @@ namespace OverWatcher.TheICETrade
             RangeTable.GetCollections().ForEach(s =>
             {
                 RangeToCSV(s.Item1, s.Item2, s.Item3);
-                //TrimCSV(s.Item1, s.Item2);
+                TrimCSV(s.Item1, s.Item2);
             });
         }
-
+        #endregion
+        #region Internal Helpers
         private Tuple<string, int> StringToAddr(string addr)
         {
             var address = addr.Split("$".ToCharArray()).Where(s => !string.IsNullOrEmpty(s)).ToArray();
             return new Tuple<string, int>(address[0], int.Parse(address[1]));
-        }
-
-        private Range SelectRange(Worksheet sheet, int startRow, int endRow)
-        {
-            int lastCol = sheet.Cells.SpecialCells(XlCellType.xlCellTypeLastCell, Type.Missing).Column;
-            var startCell = sheet.Cells[startRow, 1];
-            var endCell = sheet.Cells[endRow, lastCol];
-            return sheet.Range[startCell, endCell];
         }
 
         private void RangeToCSV(CompanyName name, ProductType type, Range range)
@@ -123,8 +126,6 @@ namespace OverWatcher.TheICETrade
             target.SaveAs(OutputPath 
                 + name + type + ".csv", XlFileFormat.xlCSVWindows);
             target.Close(false, Type.Missing, Type.Missing);
-            Marshal.FinalReleaseComObject(sheet);
-            Marshal.FinalReleaseComObject(target);
         }
 
         private System.Data.DataTable RangeToDataTable(CompanyName name, ProductType type, Range range)
@@ -222,8 +223,18 @@ namespace OverWatcher.TheICETrade
                 file.Delete();
             }
         }
-
-        #region IDisposable Support
+        #endregion
+        public static void DataTableCorrectDate(ref System.Data.DataTable dt, string colName)
+        {
+            foreach (DataRow row in dt.Rows)
+            {
+                row[colName] = DateTime
+                        .FromOADate(double.Parse(row[colName]
+                        .ToString()))
+                        .ToString("dd-MM-yyyy");
+            }
+        }
+        #region Clean Up
         private bool disposedValue = false; // To detect redundant calls
 
         protected virtual void Dispose(bool disposing)
@@ -232,22 +243,9 @@ namespace OverWatcher.TheICETrade
             {
                 if (disposing)
                 {
+                    Console.WriteLine("Closing Excel Parser...");
                     // TODO: dispose managed state (managed objects).
-                    foreach (Workbook workbook in excel.Workbooks)
-                    {
-                        foreach (Worksheet sheet in workbook.Worksheets)
-                        {
-                            Marshal.FinalReleaseComObject(sheet);
-
-                        }
-                        workbook.Close(0);
-                        Marshal.FinalReleaseComObject(workbook);
-
-                    }
-                    foreach(var pair in RangeTable)
-                    {
-                        Marshal.ReleaseComObject(pair.Value);
-                    }
+                    CloseCOM(COMCloseType.Exit);
                     excel.Quit();
                     Marshal.FinalReleaseComObject(excel);
                     excel = null;
@@ -276,6 +274,10 @@ namespace OverWatcher.TheICETrade
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
             // GC.SuppressFinalize(this);
+        }
+        protected override void CleanUpSetup()
+        {
+            closableCOMList.Add(typeof(Workbook));
         }
         #endregion
     }
