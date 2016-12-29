@@ -102,7 +102,7 @@
     <Compile Include="ICEOpenLinkComparator.cs" />
     <Compile Include="DBConnector.cs" />
     <Compile Include="EmailHandler.cs" />
-    <Compile Include="ExcelParser.cs" />
+    <Compile Include="ExcelHandler.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="HTMLGenerator.cs" />
     <Compile Include="OpenLinkDBMonitor.cs" />

@@ -55,7 +55,7 @@ namespace OverWatcher
                 CleanUpTempFolder();
                 p.run();
                 p.LogCount();
-                ExcelParser parser = new ExcelParser();
+                ExcelHandler parser = new ExcelHandler();
                 if (!EnableComparison)
                 {
                     Console.WriteLine("Non Comparison Mode");
@@ -85,7 +85,7 @@ namespace OverWatcher
                         db.LogCount();
                         var ICEResult = parser.GetDataTableList();
                         var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
-                        diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
+                        diff.ForEach(d => ExcelHandler.DataTableCorrectDate(ref d, "Trade Date"));
                         if (EnableEmail)
                         {
                             //to-do
