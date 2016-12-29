@@ -29,57 +29,74 @@ namespace OverWatcher
 
         } 
 
-        public void SendDiff(List<DataTable> diff)
+        public void SendResultEmail(string body, List<string> attachments)
         {
-            
-            MailItem mailItem = outlook.CreateItem(OlItemType.olMailItem);
-            mailItem.Subject = "ICE Oracle Monitor Result";
-            mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
-            mailItem.Body = string.Join(Environment.NewLine, diff.Select(d => HelperFunctions.DataTableToHTML(d)));
-            mailItem.Importance = OlImportance.olImportanceNormal;
-            string path = ConfigurationManager.AppSettings["TempFolderPath"];
-            diff.ForEach(d => mailItem.Attachments
-                                    .Add(HelperFunctions
-                                    .saveDataTableToCSV(path, d, "_diff"), OlAttachmentType.olByValue));
-            mailItem.Display(false);
-            mailItem.Send();
-            mailItem.Close(OlInspectorClose.olDiscard);
-            Marshal.FinalReleaseComObject(mailItem);
+            Console.WriteLine("Sending Result Email...");
+            MailItem mailItem = null;
+            try
+            {
+                mailItem = outlook.CreateItem(OlItemType.olMailItem);
+                mailItem.Subject = "ICE Oracle Monitor Result";
+                mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
+                mailItem.Body = body;
+                mailItem.Importance = OlImportance.olImportanceNormal;
+                attachments?.ForEach(att => mailItem.Attachments.Add(att));
+                mailItem.Display(false);
+                mailItem.Send();
+                mailItem.Close(OlInspectorClose.olDiscard);
+                Marshal.FinalReleaseComObject(mailItem);
+            }
+            catch(System.Exception ex)
+            {
+                Console.WriteLine("Send Result Email Failed --" + ex.Message);
+                this.Dispose();
+            }
 
         }
         public string GetOTP(DateTime requestTime)
         {
             string otp = "";
-            MAPIFolder inboxFolder = ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox)
-                        .Folders[ConfigurationManager.AppSettings["OTPInboxFolder"]];
-            inboxFolder.Items.Sort("[ReceivedTime]", true);
-            MailItem mail = null;
-            Console.WriteLine("Retreiving OTP Email...");
-            for(int i = 1; i <= inboxFolder.Items.Count; ++i)
+            try
             {
-                MailItem tmp = inboxFolder.Items[i] as MailItem;
-                if (tmp.ReceivedTime >= requestTime &&
-                        tmp.Subject.Contains(ConfigurationManager.AppSettings["OTPEmailSubject"]))
+                MAPIFolder inboxFolder = ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox)?
+                            .Folders[ConfigurationManager.AppSettings["OTPInboxFolder"]];
+                if (inboxFolder == null) return otp;
+                inboxFolder.Items.Sort("[ReceivedTime]", true);
+                MailItem mail = null;
+                Console.WriteLine("Retreiving OTP Email...");
+                for (int i = 1; i <= inboxFolder.Items.Count; ++i)
                 {
-                    mail = tmp;
-                    break;
+                    MailItem tmp = inboxFolder.Items[i] as MailItem;
+                    if (tmp.ReceivedTime >= requestTime &&
+                            tmp.Subject.Contains(ConfigurationManager.AppSettings["OTPEmailSubject"]))
+                    {
+                        mail = tmp;
+                        break;
+                    }
+                    if (tmp.ReceivedTime < requestTime) break;
                 }
-                if (tmp.ReceivedTime < requestTime) break;
+                if (mail == null)
+                {
+                    mail = WaitForNewEmail(inboxFolder, WaitForNewOTPMail);
+                }
+                Regex regex = new Regex("(?<=Your ICE 2FA passcode is )[0-9]*");
+                int t;
+                string result = regex.Match(mail.Body).Value;
+                if (int.TryParse(result, out t))
+                {
+                    otp = result;
+                }
+                mail.Close(OlInspectorClose.olDiscard);
+                Marshal.FinalReleaseComObject(mail);
+                return otp;
             }
-            if(mail == null)
+            catch(System.Exception ex)
             {
-                mail = WaitForNewEmail(inboxFolder, WaitForNewOTPMail);
+                Console.WriteLine("Retreiving OTP Email Failed --" + ex.Message);
+                this.Dispose();
+                return otp;
             }
-            Regex regex = new Regex("(?<=Your ICE 2FA passcode is )[0-9]*");
-            int t;
-            string result = regex.Match(mail.Body).Value;
-            if (int.TryParse(result, out t))
-            {
-                otp = result;
-            }
-            mail.Close(OlInspectorClose.olDiscard);
-            Marshal.FinalReleaseComObject(mail);
-            return otp;
+
         }
 
         private MailItem WaitForNewEmail(MAPIFolder inbox, WaitForNewMailDelegate del)

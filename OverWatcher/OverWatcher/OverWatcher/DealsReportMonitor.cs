@@ -22,11 +22,21 @@ namespace OverWatcher.TheICETrade
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
         private int futures = 0;
         private int cleared = 0;
+        private static bool EnableComparison;
+        private static bool EnableSaveLocal;
+        private static bool EnableEmail;
         private Dictionary<string, string> NameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
         };
+        private static void LoadOptions()
+        {
+            EnableComparison = ConfigurationManager.AppSettings["EnableComparison"] == "true" ? true : false;
+            EnableEmail = ConfigurationManager.AppSettings["EnableEmail"] == "true" ? true : false;
+            EnableSaveLocal = ConfigurationManager.AppSettings["EnableSaveLocal"] == "true" ? true : false;
+        }
+
         #region Thread Share Fields
         internal volatile bool isDownloadCompleted = false;
         internal volatile string DownloadFileName = "";
@@ -51,48 +61,66 @@ namespace OverWatcher.TheICETrade
 
                 Console.WriteLine(string.Format("Run Checking at {0}",
                         DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
+                LoadOptions();
                 DealsReportMonitor p = new DealsReportMonitor();
                 Console.WriteLine("Clean up old Excel..");
                 p.cleanUpTempFolder();
                 p.run();
-                if(ConfigurationManager.AppSettings["EnableOutputCountToFile"].ToString()
-                     == "true")
+                ExcelParser parser = new ExcelParser();
+                if (!EnableComparison)
                 {
-                    p.OutputCountToFile();
-                }
-                using (ExcelParser parser = new ExcelParser())
-                {
-                    if (ConfigurationManager.AppSettings["EnableComparison"] != "true")
+                    Console.WriteLine("Non Comparison Mode");
+                    Console.WriteLine("Saving To Local...");
+                    parser.SaveAsCSV();
+                    if(!EnableEmail)
                     {
-                        parser.SaveAsCSV();
+                        Console.WriteLine("Saving Count Result..");
+                        p.OutputCountToFile();
                     }
                     else
                     {
-                        try
+                        Console.WriteLine("Add Count Result To Email..");
+                        using (EmailHandler email = new EmailHandler())
                         {
-                            if (ConfigurationManager.AppSettings["EnableSaveICEResult"] == "true")
-                            {
-                                parser.SaveAsCSV();
-                            }
-                            var DBResult = p.QueryDB();
-                            var ICEResult = parser.GetDataTableList();
-                            var diff = new DataTableComparator().Diff(DBResult, ICEResult);
-                            if (ConfigurationManager.AppSettings["EnableSendDiffByEmail"] == "true")
-                            {
-                                //to-do
-                                using (EmailHandler email = new EmailHandler())
-                                {
-                                    email.SendDiff(diff);
-                                }
-                            }
+                            email.SendResultEmail(p.FormatCount(), null);
                         }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine("Comparison Failed..");
-                            Console.WriteLine(ex);
-                        }
-
                     }
+                }
+                else
+                {
+                    Console.WriteLine("Start Comparison..");
+                    try
+                    {
+                        var DBResult = p.QueryDB();
+                        var ICEResult = parser.GetDataTableList();
+                        var diff = new DataTableComparator().Diff(DBResult, ICEResult);
+                        if (EnableEmail)
+                        {
+                            //to-do
+                            Console.WriteLine("Email Enabled..");
+                            using (EmailHandler email = new EmailHandler())
+                            {
+                                Console.WriteLine("Add Count Result To Email..");
+                                Console.WriteLine("Add Comparison Result To Email..");
+                                var attachmentPaths = diff.Select(d => HelperFunctions.saveDataTableToCSV(d, "_Diff")).ToList();
+                                Console.WriteLine("Add Comparison Result To Attachment..");
+                                email.SendResultEmail(p.FormatCount() + Environment.NewLine + p.BuildComparisonResultBody(diff), attachmentPaths);
+                            }
+                        }
+                        if(EnableSaveLocal)
+                        {
+                            Console.WriteLine("Saving To Local...");
+                            p.OutputCountToFile();
+                            DBResult.ForEach(d => HelperFunctions.saveDataTableToCSV(d, "_DB"));
+                            ICEResult.ForEach(d => HelperFunctions.saveDataTableToCSV(d, "_ICE"));
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Comparison Failed...");
+                        Console.WriteLine(ex);
+                    }
+
                 }
                 if (interval < 1) return;
                 Console.WriteLine(string.Format(
@@ -102,6 +130,10 @@ namespace OverWatcher.TheICETrade
             }
         }
 
+        private string BuildComparisonResultBody(List<DataTable> diff)
+        {
+            return string.Join(Environment.NewLine, diff.Select(d => HelperFunctions.DataTableToHTML(d)));
+        }
         public static void Terminate()
         {
             Cef.Shutdown();
@@ -118,10 +150,6 @@ namespace OverWatcher.TheICETrade
                     {
                         string name = company.ToString() + product.ToString();
                         dtList.Add(db.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
-                        if (ConfigurationManager.AppSettings["EnableSaveDBResult"] == "true")
-                        {
-                            HelperFunctions.saveDataTableToCSV(ConfigurationManager.AppSettings["OutputFolderPath"], dtList.Last(), "_DB");
-                        }
                     }
                 }
             }
@@ -222,7 +250,6 @@ namespace OverWatcher.TheICETrade
                 response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
                 if (GetResponseString(response).Contains("Re-login with 2FA passcode"))
                 {
-                    //OutputTo("OTP", "Expired");
                     Console.WriteLine("OTP Expired, Get OTP from Outlook");
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
@@ -466,12 +493,8 @@ namespace OverWatcher.TheICETrade
         private void OutputTo(string futures, string cleared)
         {
             string outputPath = ConfigurationManager.AppSettings["OutputPath"];
-            StringBuilder csv = new StringBuilder();
-            csv.AppendLine("BOOK, TRADE_COUNT");
-            csv.AppendLine(string.Format("cleared swap,{0}", cleared));
-            csv.AppendLine(string.Format("future,{0}", futures));
             //after your loop
-            File.WriteAllText(outputPath, csv.ToString());
+            File.WriteAllText(outputPath, FormatCount(futures, cleared));
 
         }
         public void OutputCountToFile()
@@ -479,7 +502,18 @@ namespace OverWatcher.TheICETrade
             OutputTo(this.futures.ToString(), this.cleared.ToString().Split("[".ToCharArray())
                                     .Where(name => !string.IsNullOrEmpty(name)).FirstOrDefault());
         }
-
+        private string FormatCount(string futures, string cleared)
+        {
+            StringBuilder csv = new StringBuilder();
+            csv.AppendLine("BOOK, TRADE_COUNT");
+            csv.AppendLine(string.Format("cleared swap,{0}", cleared));
+            csv.AppendLine(string.Format("future,{0}", futures));
+            return csv.ToString();
+        }
+        private string FormatCount()
+        {
+            return FormatCount(this.futures.ToString(), this.cleared.ToString());
+        }
         private class DownloadHandler : IDownloadHandler
         {
             DealsReportMonitor drm;
