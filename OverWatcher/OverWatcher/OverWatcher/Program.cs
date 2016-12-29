@@ -84,66 +84,66 @@ namespace OverWatcher
                 CleanUpTempFolder();
                 p.run();
                 p.LogCount();
-                ExcelParser parser = new ExcelParser();
-                if (!EnableComparison)
+                using (ExcelParser parser = new ExcelParser())
                 {
-                    log.Info("Non Comparison Mode");
-                    log.Info("Saving To Local...");
-                    parser.SaveAsCSV();
-                    if (!EnableEmail)
+                    if (!EnableComparison)
                     {
-                        log.Info("Saving Count Result..");
-                        p.OutputCountToFile();
+                        log.Info("Non Comparison Mode");
+                        log.Info("Saving To Local...");
+                        parser.SaveAsCSV();
+                        if (!EnableEmail)
+                        {
+                            log.Info("Saving Count Result..");
+                            p.OutputCountToFile();
+                        }
+                        else
+                        {
+                            log.Info("Add Count Result To Email..");
+                            using (EmailHandler email = new EmailHandler())
+                            {
+                                email.SendResultEmail(p.CountToHTML(), null);
+                            }
+                        }
                     }
                     else
                     {
-                        log.Info("Add Count Result To Email..");
-                        using (EmailHandler email = new EmailHandler())
+                        log.Info("Start Comparison..");
+                        try
                         {
-                            email.SendResultEmail(p.CountToHTML(), null);
-                        }
-                    }
-                }
-                else
-                {
-                    log.Info("Start Comparison..");
-                    try
-                    {
-                        OracleDBMonitor db = new OracleDBMonitor();
-                        var DBResult = db.QueryDB();
-                        db.LogCount();
-                        var ICEResult = parser.GetDataTableList();
-                        var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
-                        diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
-                        if (EnableEmail)
-                        {
-                            //to-do
-                            log.Info("Email Enabled..");
-                            using (EmailHandler email = new EmailHandler())
+                            OracleDBMonitor db = new OracleDBMonitor();
+                            var DBResult = db.QueryDB();
+                            db.LogCount();
+                            var ICEResult = parser.GetDataTableList();
+                            var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
+                            diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
+                            if (EnableEmail)
                             {
-                                log.Info("Add Count Result To Email..");
-                                log.Info("Add Comparison Result To Email..");
-                                var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
-                                log.Info("Add Comparison Result To Attachment..");
-                                email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), attachmentPaths);
+                                //to-do
+                                log.Info("Email Enabled..");
+                                using (EmailHandler email = new EmailHandler())
+                                {
+                                    log.Info("Add Count Result To Email..");
+                                    log.Info("Add Comparison Result To Email..");
+                                    var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
+                                    log.Info("Add Comparison Result To Attachment..");
+                                    email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), attachmentPaths);
+                                }
+                            }
+                            if (EnableSaveLocal)
+                            {
+                                log.Info("Saving To Local...");
+                                p.OutputCountToFile();
+                                DBResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_DB"));
+                                ICEResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_ICE"));
                             }
                         }
-                        if (EnableSaveLocal)
+                        catch (Exception ex)
                         {
-                            log.Info("Saving To Local...");
-                            p.OutputCountToFile();
-                            DBResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_DB"));
-                            ICEResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_ICE"));
+                            log.Error("Comparison Failed...   " + ex);
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        parser.Dispose();
-                        log.Error("Comparison Failed...   " + ex);
-                    }
 
+                    }
                 }
-                parser.Dispose();
                 if (interval < 1) return;
                 log.Info(string.Format(
                     "Checking Finished, Waiting for next run. Interval = {0} seconds",

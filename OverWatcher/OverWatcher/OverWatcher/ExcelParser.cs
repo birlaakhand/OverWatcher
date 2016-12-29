@@ -251,7 +251,6 @@ namespace OverWatcher.TheICETrade
                     excel.Quit();
                     Marshal.FinalReleaseComObject(excel);
                     excel = null;
-
                     GC.Collect();
                     GC.WaitForPendingFinalizers();
                 }
