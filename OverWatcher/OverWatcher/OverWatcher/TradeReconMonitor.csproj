@@ -176,6 +176,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="COMInterfaceBase.cs" />
+    <Compile Include="DisposableCleaner.cs" />
     <Compile Include="ExcelParser.cs" />
     <Compile Include="ICEOpenLinkComparator.cs" />
     <Compile Include="DBConnector.cs" />

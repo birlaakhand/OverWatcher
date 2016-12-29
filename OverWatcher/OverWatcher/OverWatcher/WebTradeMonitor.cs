@@ -146,6 +146,7 @@ namespace OverWatcher.TheICETrade
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
                     {
+                        DisposableCleaner.ManageDisposable(email);
                         otp = email.GetOTP(requestTime).ToString();
                     }
                     if(otp == "")

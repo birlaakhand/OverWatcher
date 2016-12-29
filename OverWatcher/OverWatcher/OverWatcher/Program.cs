@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.ServiceProcess;
 using System.Threading;
+using System.Windows.Forms;
 namespace OverWatcher
 {
 
@@ -19,7 +20,6 @@ namespace OverWatcher
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
                         (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         #region Service Runner
         public const string ServiceName = "TradeReconMonitor";
         public class Service : ServiceBase
@@ -40,9 +40,11 @@ namespace OverWatcher
         #endregion
         private static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += DisposableCleaner.OnClose;
             Schedule();
             Terminate();
         }
+
 
         private static void Start(string[] args)
         {
@@ -86,6 +88,7 @@ namespace OverWatcher
                 p.LogCount();
                 using (ExcelParser parser = new ExcelParser())
                 {
+                    DisposableCleaner.ManageDisposable(parser);
                     if (!EnableComparison)
                     {
                         log.Info("Non Comparison Mode");
@@ -101,6 +104,7 @@ namespace OverWatcher
                             log.Info("Add Count Result To Email...");
                             using (EmailHandler email = new EmailHandler())
                             {
+                                DisposableCleaner.ManageDisposable(email);
                                 email.SendResultEmail(p.CountToHTML(), null);
                             }
                         }
@@ -122,6 +126,7 @@ namespace OverWatcher
                                 log.Info("Email Enabled...");
                                 using (EmailHandler email = new EmailHandler())
                                 {
+                                    DisposableCleaner.ManageDisposable(email);
                                     log.Info("Add Count Result To Email...");
                                     log.Info("Add Comparison Result To Email...");
                                     var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();

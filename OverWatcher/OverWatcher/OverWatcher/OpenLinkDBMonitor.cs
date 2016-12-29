@@ -19,6 +19,7 @@ namespace OverWatcher.TheICETrade
             var dtList = new List<DataTable>();
             using (DBConnector db = new DBConnector())
             {
+                DisposableCleaner.ManageDisposable(db);
                 foreach (CompanyName company in Enum.GetValues(typeof(CompanyName)))
                 {
                     foreach (ProductType product in Enum.GetValues(typeof(ProductType)))
