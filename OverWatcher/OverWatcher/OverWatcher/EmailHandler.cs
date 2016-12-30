@@ -99,6 +99,7 @@ namespace OverWatcher
                 {
                     otp = result;
                 }
+                mail.Delete();
                 return otp;
             }
             catch(System.Exception ex)
