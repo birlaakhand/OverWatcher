@@ -10,7 +10,6 @@ using System.ServiceProcess;
 using System.Threading;
 namespace OverWatcher
 {
-
     class Program
     {
         private static bool EnableComparison;
@@ -20,24 +19,9 @@ namespace OverWatcher
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
                         (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #region Service Runner
-        public const string ServiceName = "TradeReconMonitor";
-        public class Service : ServiceBase
-        {
-            public Service()
-            {
-                ServiceName = Program.ServiceName;
-            }
-            protected override void OnStart(string[] args)
-            {
-                Program.Start(args);
-            }
-            protected override void OnStop()
-            {
-                Program.Stop();
-            }
-        }
+        public const string ServiceName = "TradeReconOverWatcher";
         #endregion
-        private static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (ConfigurationManager.AppSettings["EnableRunAsConsoleApplication"] != "true")
                 // running as service
@@ -52,12 +36,12 @@ namespace OverWatcher
         }
 
 
-        private static void Start(string[] args)
+        public static void Start(string[] args)
         {
             Schedule();
         }
 
-        private static void Stop()
+        public static void Stop()
         {
             Terminate();
         }
