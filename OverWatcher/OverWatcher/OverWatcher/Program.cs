@@ -23,16 +23,8 @@ namespace OverWatcher
         #endregion
         public static void Main(string[] args)
         {
-            if (ConfigurationManager.AppSettings["EnableRunAsConsoleApplication"] != "true")
-                // running as service
-                using (var service = new Service())
-                    ServiceBase.Run(service);
-            else
-            {
-                // running as console app
-                Start(args);
-                Stop();
-            }
+            Start(args);
+            Terminate();
         }
 
 
