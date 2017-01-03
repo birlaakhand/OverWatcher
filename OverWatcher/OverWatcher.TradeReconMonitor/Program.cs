@@ -48,6 +48,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             else
             {
+                log.Info("Single Run of Task");
                 StartReconsiliation();
                 log.Info("Checking Finished");
             }

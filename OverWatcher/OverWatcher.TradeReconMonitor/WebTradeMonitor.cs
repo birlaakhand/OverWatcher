@@ -41,7 +41,8 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             try
             {
-                _timeZone = TimeZoneInfo.FromSerializedString(ConfigurationManager.AppSettings["TimeZone"]);
+                _timeZone = TimeZoneInfo.Local;
+                //_timeZone = TimeZoneInfo.FindSystemTimeZoneById(ConfigurationManager.AppSettings["TimeZone"]);
 
             }
             catch (Exception ex)
@@ -216,11 +217,11 @@ namespace OverWatcher.TradeReconMonitor.Core
                 {
                     File.WriteAllText(file, cookieJar);
                 }
-                Console.Out.WriteLine("Done.");
+                log.Info("Done.");
             }
             catch (Exception e)
             {
-                Console.Out.WriteLine("Problem writing cookies to disk: " + e.GetType());
+                log.Warn("Problem writing cookies to disk: " + e.GetType());
             }
         }
 

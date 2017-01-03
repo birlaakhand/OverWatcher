@@ -46,7 +46,7 @@ namespace OverWatcher.Common.Scheduler
                 this.skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
                 if (this.skip == Skip.DAYOFWEEK)
                 {
-                    this.skipValue = skipValue.Split(new char[]{';'}).Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(skipValue))).ToList();
+                    this.skipValue = skipValue.Split(new char[]{';'}).Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s))).ToList();
                 }
                 else
                 {
