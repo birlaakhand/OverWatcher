@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class TradeMonitorBase
+    class TradeMonitorBase : COMManagerBase
     {
         protected int futures = 0;
         protected int swap = 0;
@@ -30,5 +30,6 @@ namespace OverWatcher.TradeReconMonitor.Core
                                 + "   "
                                 + "Cleared count:" + swap);
         }
+        
     }
 }

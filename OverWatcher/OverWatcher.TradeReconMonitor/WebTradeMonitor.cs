@@ -30,7 +30,13 @@ namespace OverWatcher.TradeReconMonitor.Core
         };
         public static void InitializeEnvironment()
         {
-            Cef.Initialize();
+            if (!Cef.IsInitialized)
+            {
+                var settings = new CefSettings();
+                settings.IgnoreCertificateErrors = true; //bug fix: theice.com SSL Certificate expired
+                Cef.Initialize(settings);
+
+            }
         }
         public static void CleanupEnvironment()
         {
@@ -40,14 +46,14 @@ namespace OverWatcher.TradeReconMonitor.Core
         public WebTradeMonitor() : base("ICETrade")
         {
             try
-            {
-                _timeZone = TimeZoneInfo.Local;
-                //_timeZone = TimeZoneInfo.FindSystemTimeZoneById(ConfigurationManager.AppSettings["TimeZone"]);
+            {               
+                _timeZone = TimeZoneInfo.FindSystemTimeZoneById(ConfigurationManager.AppSettings["TimeZone"]);
 
             }
             catch (Exception ex)
             {
                 log.Warn("TimeZone Format is Wrong, Set to Local Detail: " + ex.Message);
+                _timeZone = TimeZoneInfo.Local;
             }
         }
         #region Thread Share Fields
@@ -167,6 +173,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
                     {
+                        ManageCOM(email);
                         otp = email.GetOTP(requestTime).ToString();
                     }
                     if(otp == "")

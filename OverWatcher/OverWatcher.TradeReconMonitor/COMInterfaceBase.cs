@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    internal abstract class COMInterfaceBase
+    internal abstract class COMInterfaceBase : IDisposable
     {
 
         #region Clean Up
@@ -49,6 +49,8 @@ namespace OverWatcher.TradeReconMonitor.Core
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
+
+        public abstract void Dispose();
 
         #endregion
     }

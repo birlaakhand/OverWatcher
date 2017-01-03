@@ -24,12 +24,11 @@ namespace OverWatcher.Common.Scheduler
         private List<DateTime> skipValue;
 
         public DateTime NextRun { get; set; }
-        static string format = "MM/dd/hh:mm:ss.fff";
         public bool isOnTime(DateTime dt)
         {
             if (isSkip(dt) || dt < NextRun) return false;
             CalculateNextTime();
-            CalculateSkip();
+            CalculateNextSkip();
             return true;
         }
         public bool isSingleRun()
@@ -44,14 +43,8 @@ namespace OverWatcher.Common.Scheduler
             {
                 freq = (Frequency)Enum.Parse(typeof(Frequency), frequency.ToUpper());
                 this.skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
-                if (this.skip == Skip.DAYOFWEEK)
-                {
-                    this.skipValue = skipValue.Split(new char[]{';'}).Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s))).ToList();
-                }
-                else
-                {
-                    this.frequencyValue = ParseAmbiguousDateString(frequencyValue);
-                }
+                CalculateSkip(skipValue);
+                this.frequencyValue = ParseAmbiguousDateString(frequencyValue);
                 NextRun = DateTime.Now;
             }
             catch(Exception ex)
@@ -68,8 +61,16 @@ namespace OverWatcher.Common.Scheduler
             }
             return false;
         }
-        private void CalculateSkip()
+        private void CalculateNextSkip()
         {
+
+        }
+        private void CalculateSkip(string skipValue)
+        {
+            if (this.skip == Skip.DAYOFWEEK)
+            {
+                this.skipValue = skipValue.Split(new char[] { ';' }).Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s))).ToList();
+            }
 
         }
         private void CalculateNextTime()
@@ -81,14 +82,22 @@ namespace OverWatcher.Common.Scheduler
         }
         private DateTime ParseAmbiguousDateString(string date)
         {
-            if (date.Length != format.Length) throw new ArgumentException("Scheduler:frequency value parse error");
-                char[] formatArr = format.ToCharArray();
-            char[] dateArr = date.ToCharArray();
-            for (int i = 0; i < format.ToCharArray().Length; ++i)
-            {
-                if (formatArr[i] != dateArr[i]) return DateTime.ParseExact(date, format.Substring(i), System.Globalization.CultureInfo.InvariantCulture);
+            try
+            {               
+                date = date.Replace("yyyy", "0001");
+                date = date.Replace("MM", "01");
+                date = date.Replace("dd", "01");
+                date = date.Replace("hh", "00");
+                date = date.Replace("mm", "00");
+                date = date.Replace("ss", "00");
+                date = date.Replace("fff", "000");
+                return DateTime.ParseExact(date, "yyyy/MM/dd/hh:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture);
             }
-            throw new ArgumentException("Scheduler:frequency value parse error");
+            catch(Exception ex)
+            {
+                throw new ArgumentException("Scheduler:frequency value parse error - " + ex.Message);
+            }
+            
         }
         private DayOfWeek ParseDayofweek(string dow)
         {

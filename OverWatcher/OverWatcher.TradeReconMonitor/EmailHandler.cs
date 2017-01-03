@@ -13,7 +13,7 @@ using System.Diagnostics;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class EmailHandler : COMInterfaceBase, IDisposable
+    class EmailHandler : COMInterfaceBase
     {
         private Application outlook;
         private _NameSpace ns = null;
@@ -173,7 +173,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         // }
 
         // This code added to correctly implement the disposable pattern.
-        public void Dispose()
+        public override void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);

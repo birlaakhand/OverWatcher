@@ -14,7 +14,7 @@ using Microsoft.VisualBasic.FileIO;
 using OverWatcher.Common.HelperFunctions;
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class ExcelParser : COMInterfaceBase, IDisposable
+    class ExcelParser : COMInterfaceBase
     {
         #region Members
         private readonly string[] headers = { "Cleared Deals", "Futures Deals" };
@@ -270,7 +270,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         // }
 
         // This code added to correctly implement the disposable pattern.
-        public void Dispose()
+        public override void Dispose()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);

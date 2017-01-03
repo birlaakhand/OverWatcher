@@ -21,6 +21,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static void Main(string[] args)
         {
+            Console.Title = "OverWatcher.TradeReconMonitor - Enter 'q' to Quit The Program";
             Start(args);
             Stop();
         }
@@ -28,6 +29,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public static void Start(string[] args)
         {
+            Console.WriteLine("Press \'q\' to quit.");
             WebTradeMonitor.InitializeEnvironment();
             var schedule = new Schedule(ConfigurationManager.AppSettings["Frequency"],
                                             ConfigurationManager.AppSettings["FrequencyValue"],
@@ -35,20 +37,20 @@ namespace OverWatcher.TradeReconMonitor.Core
                                             ConfigurationManager.AppSettings["SkipValue"]);
             if (!schedule.isSingleRun())
             {
+                log.Info("Start in Scheduled Mode");
                 int interval = 1;
                 int.TryParse(ConfigurationManager.AppSettings["SchedulerBaseInterval"], out interval);
-                TaskScheduler scheduler = new TaskScheduler(interval * 1000);
+                TaskScheduler scheduler = new TaskScheduler(interval);
                 scheduler.AddTask(() =>
                 {
                     StartReconsiliation();
                 }, schedule);
                 scheduler.Start();
-                Console.WriteLine("Press \'q\' to quit the sample.");
                 while (Console.Read() != 'q') ;
             }
             else
             {
-                log.Info("Single Run of Task");
+                log.Info("Start in Single Run Mode");
                 StartReconsiliation();
                 log.Info("Checking Finished");
             }
@@ -89,6 +91,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             p.LogCount();
             using (ExcelParser parser = new ExcelParser())
             {
+                
                 if (!EnableComparison)
                 {
                     log.Info("Non Comparison Mode");

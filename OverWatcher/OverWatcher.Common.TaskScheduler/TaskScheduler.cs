@@ -19,21 +19,33 @@ namespace OverWatcher.Common.Scheduler
         }
         public void Start()
         {
-            timer.Elapsed += (s, e) =>
-            {
-                foreach (KeyValuePair<TaskDelegate, Schedule> pair in task)
-                {
-                    DateTime now = DateTime.Now;
-                    if (pair.Value.isOnTime(now))
-                    {
-                        log.Info(string.Format("Task Start",
-                                    now.ToString("MM/dd/yyyy hh:mm")));
-                        pair.Key.Invoke();
-                        log.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
-                    }
-                }
-            };
+            ElapsedEventHandler handler = new ElapsedEventHandler(TaskEventHandler);
+            timer.Elapsed += handler;
             timer.Start();
+            handler.BeginInvoke(this, null, new AsyncCallback(Timer_ElapsedCallback), handler);
+        }
+        private void Timer_ElapsedCallback(IAsyncResult result)
+        {
+            ElapsedEventHandler handler = result.AsyncState as ElapsedEventHandler;
+            if (handler != null)
+            {
+                handler.EndInvoke(result);
+            }
+        }
+
+        private void TaskEventHandler(object sender, ElapsedEventArgs e)
+        {
+            foreach (KeyValuePair<TaskDelegate, Schedule> pair in task)
+            {
+                DateTime now = DateTime.Now;
+                if (pair.Value.isOnTime(now))
+                {
+                    log.Info(string.Format("Task Start",
+                                now.ToString("MM/dd/yyyy hh:mm")));
+                    pair.Key.Invoke();
+                    log.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
+                }
+            }
         }
         public void Stop()
         {
