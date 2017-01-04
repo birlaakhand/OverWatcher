@@ -44,7 +44,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 isUsingOpenedOutlook = false;
             }
         }
-        public void SendResultEmail(string body, List<string> attachments)
+        public void SendResultEmail(string HTMLbody, string body, List<string> attachments)
         {
             log.Info("Sending Result Email...");
             MailItem mailItem = null;
@@ -53,7 +53,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 mailItem = GetCOM<MailItem>(outlook.CreateItem(OlItemType.olMailItem));
                 mailItem.Subject = "ICE Openlink Trade Recon Results";
                 mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
-                mailItem.HTMLBody = body;
+                mailItem.HTMLBody = body + Environment.NewLine + HTMLbody;
                 mailItem.Importance = OlImportance.olImportanceNormal;
                 attachments?.ForEach(att => mailItem.Attachments.Add(att));
                 mailItem.Send();

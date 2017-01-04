@@ -135,7 +135,8 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             System.Data.DataTable dataTable = new System.Data.DataTable();
             dataTable.TableName = "" + name + type;
-            object[,] rawData = (object[,])range.Value2;
+            object[,] rawData = (object[,])range?.Value2;
+            if (rawData == null) return dataTable;
             for(int i = 1; i <= rawData.GetLength(1); ++i)
             {
                 if (rawData[1, i] == null) continue;

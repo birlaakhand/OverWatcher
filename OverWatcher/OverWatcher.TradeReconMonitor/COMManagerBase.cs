@@ -10,6 +10,10 @@ namespace OverWatcher.TradeReconMonitor.Core
     {
         #region COM Dispose Support
         private List<COMInterfaceBase> DisposeList;
+        protected COMManagerBase()
+        {
+            DisposeList = new List<COMInterfaceBase>();
+        }
         protected void ManageCOM(COMInterfaceBase com)
         {
             DisposeList.Add(com);

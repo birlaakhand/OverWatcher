@@ -27,11 +27,11 @@ namespace OverWatcher.TradeReconMonitor.Core
                         dtList.Add(db.MakeQuery(ConfigurationManager.AppSettings[name + "Query"], name));
                         if(product == ProductType.Futures)
                         {
-                            futures += dtList.Last().Rows.Count;
+                            Futures += dtList.Last().Rows.Count;
                         }
                         else
                         {
-                            swap += dtList.Last().Rows.Count;
+                            Swap += dtList.Last().Rows.Count;
                         }
                     }
                 }

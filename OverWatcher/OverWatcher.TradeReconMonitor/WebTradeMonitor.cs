@@ -321,7 +321,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 }
                 scriptTask = waitingTask;
                 string f = (scriptTask.Result as string);
-                futures += int.Parse(f.Substring(1, f.Length - 2));
+                Futures += int.Parse(f.Substring(1, f.Length - 2));
                 scriptTask = null;
                 while (string.IsNullOrEmpty((scriptTask?.Result as string)))
                 {
@@ -330,7 +330,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     Thread.Sleep(100);
                 }
                 f = (scriptTask.Result as string);
-                swap += int.Parse(f.Substring(1, f.Length - 2));
+                Swap += int.Parse(f.Substring(1, f.Length - 2));
                 if(ConfigurationManager.AppSettings["EnableSaveWebpageScreenShot"] == "true")
                 {
                     await SavePageScreenShot(wb, temp);
@@ -397,7 +397,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         public void OutputCountToFile()
         {
-            OutputTo(this.futures.ToString(), this.swap.ToString().Split("[".ToCharArray())
+            OutputTo(this.Futures.ToString(), this.Swap.ToString().Split("[".ToCharArray())
                                     .Where(name => !string.IsNullOrEmpty(name)).FirstOrDefault());
         }
         private string FormatCount(string futures, string cleared)
@@ -410,7 +410,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         private string FormatCount()
         {
-            return FormatCount(this.futures.ToString(), this.swap.ToString());
+            return FormatCount(this.Futures.ToString(), this.Swap.ToString());
         }
         private class DownloadHandler : IDownloadHandler
         {

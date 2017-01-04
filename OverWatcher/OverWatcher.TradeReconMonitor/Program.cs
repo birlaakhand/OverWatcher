@@ -19,6 +19,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
                         (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static bool IsICESilent = false;
         public static void Main(string[] args)
         {
             Console.Title = "OverWatcher.TradeReconMonitor - Enter 'q' to Quit The Program";
@@ -89,6 +90,16 @@ namespace OverWatcher.TradeReconMonitor.Core
             CleanUpTempFolder();
             p.run();
             p.LogCount();
+            if(IsICESilent == true && p.Futures + p.Swap > 0)
+            {
+                using (EmailHandler email = new EmailHandler())
+                {
+                    email.SendResultEmail(p.CountToHTML(), 
+                        "First record of trade for today", null);
+                }
+                IsICESilent = false;
+            }
+            if (p.Futures + p.Swap == 0) IsICESilent = true;
             using (ExcelParser parser = new ExcelParser())
             {
                 
@@ -107,7 +118,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         log.Info("Add Count Result To Email...");
                         using (EmailHandler email = new EmailHandler())
                         {
-                            email.SendResultEmail(p.CountToHTML(), null);
+                            email.SendResultEmail(p.CountToHTML(), "",  null);
                         }
                     }
                 }
@@ -126,7 +137,11 @@ namespace OverWatcher.TradeReconMonitor.Core
                         db.LogCount();
                         var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
                         diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
-                        if (EnableEmail)
+                        if (!diff.All(d => d.Rows.Count == 0))
+                        {
+                            log.Info("Reconsiliation Matches, No Alert Send");
+                        }
+                        else if (EnableEmail)
                         {
                             //to-do
                             log.Info("Email Enabled...");
@@ -136,7 +151,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                                 log.Info("Add Comparison Result To Email...");
                                 var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
                                 log.Info("Add Comparison Result To Attachment...");
-                                email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), attachmentPaths);
+                                email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), "", attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)

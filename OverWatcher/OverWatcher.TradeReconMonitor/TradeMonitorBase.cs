@@ -8,8 +8,8 @@ namespace OverWatcher.TradeReconMonitor.Core
 {
     class TradeMonitorBase : COMManagerBase
     {
-        protected int futures = 0;
-        protected int swap = 0;
+        public int Futures { get; protected set; }
+        public int Swap { get; protected set; }
         protected string MonitorTitle = "Base";
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
                 (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -21,14 +21,14 @@ namespace OverWatcher.TradeReconMonitor.Core
         public string CountToHTML()
         {
 
-            return HTMLGenerator.CountToHTML(MonitorTitle, swap, futures);
+            return HTMLGenerator.CountToHTML(MonitorTitle, Swap, Futures);
         }
 
         public void LogCount()
         {
-            log.Info(MonitorTitle + " Future count:" + futures
+            log.Info(MonitorTitle + " Future count:" + Futures
                                 + "   "
-                                + "Cleared count:" + swap);
+                                + "Cleared count:" + Swap);
         }
         
     }
