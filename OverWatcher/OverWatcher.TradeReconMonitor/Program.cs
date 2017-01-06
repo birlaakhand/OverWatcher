@@ -137,7 +137,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         db.LogCount();
                         var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
                         diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
-                        if (!diff.All(d => d.Rows.Count == 0))
+                        if (diff.All(d => d.Rows.Count == 0))
                         {
                             log.Info("Reconsiliation Matches, No Alert Send");
                         }

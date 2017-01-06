@@ -54,19 +54,16 @@ namespace OverWatcher.TradeReconMonitor.Core
                 }
                 else if(oc > ic)
                 {
-                    diff.ImportRow(ice.Rows[iceCount]);
-                    iceCount++;
+                    diff.ImportRow(ice.Rows[iceCount++]);
                 }
                 else
                 {
-                    diff.ImportRow(ice.Rows[iceCount]);
                     oracleCount++;
                 }
             }
             while(iceCount < iceRowsCount)
             {
-                diff.ImportRow(ice.Rows[iceCount]);
-                iceCount++;
+                diff.ImportRow(ice.Rows[iceCount++]);
             }
             return diff;
         }
