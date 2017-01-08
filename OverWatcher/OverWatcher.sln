@@ -9,40 +9,75 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OverWatcher.TradeReconMonit
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OverWatcher.Common", "OverWatcher.Common", "{D608168C-4B43-469C-88F3-01791E3CB081}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OverWatcher.Common.HelperFunctions", "OverWatcher.Common.HelperFunctions\OverWatcher.Common.HelperFunctions.shproj", "{E751EDB7-E3EA-43A5-919E-14FEFE1B7D5F}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.TaskScheduler", "OverWatcher.Common.TaskScheduler\OverWatcher.Common.TaskScheduler.csproj", "{3663CE19-154B-44EF-BC00-8078A308C225}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OverWatcher.Common.Interface", "OverWatcher.Common.Interface\OverWatcher.Common.Interface.shproj", "{E3F05CE4-8B68-47E8-A19F-FEB5B3054F0B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.Logger", "OverWatcher.Common.Logger\OverWatcher.Common.Logger.csproj", "{0CE1953F-44AD-4AB3-A3DB-446731E88328}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.DateTimeHelper", "OverWatcher.Common.DateTimeHelper\OverWatcher.Common.DateTimeHelper.csproj", "{33681D3B-B609-48F6-A365-D4D89B7558CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.HelperFuntions", "OverWatcher.Common.HelperFuntions\OverWatcher.Common.HelperFuntions.csproj", "{A86A85FD-9D70-4516-9BDA-91E8188FDB96}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OverWatcher.Common.Interface", "OverWatcher.Common.Interface\OverWatcher.Common.Interface.shproj", "{89A6F9CC-D540-424C-A303-3A69E014C289}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		OverWatcher.Common.HelperFunctions\OverWatcher.Common.HelperFunctions.projitems*{29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6}*SharedItemsImports = 4
-		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{e3f05ce4-8b68-47e8-a19f-feb5b3054f0b}*SharedItemsImports = 13
-		OverWatcher.Common.HelperFunctions\OverWatcher.Common.HelperFunctions.projitems*{e751edb7-e3ea-43a5-919e-14fefe1b7d5f}*SharedItemsImports = 13
+		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6}*SharedItemsImports = 4
+		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{89a6f9cc-d540-424c-a303-3a69e014c289}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Debug|x64.ActiveCfg = Debug|x64
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Debug|x64.Build.0 = Debug|x64
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Debug|x64.Deploy.0 = Debug|x64
+		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Release|Any CPU.ActiveCfg = Release|x64
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Release|x64.ActiveCfg = Release|x64
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}.Release|x64.Build.0 = Release|x64
+		{3663CE19-154B-44EF-BC00-8078A308C225}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{3663CE19-154B-44EF-BC00-8078A308C225}.Debug|x64.ActiveCfg = Debug|x64
 		{3663CE19-154B-44EF-BC00-8078A308C225}.Debug|x64.Build.0 = Debug|x64
+		{3663CE19-154B-44EF-BC00-8078A308C225}.Release|Any CPU.ActiveCfg = Release|x64
 		{3663CE19-154B-44EF-BC00-8078A308C225}.Release|x64.ActiveCfg = Release|x64
 		{3663CE19-154B-44EF-BC00-8078A308C225}.Release|x64.Build.0 = Release|x64
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Debug|x64.Build.0 = Debug|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Release|x64.ActiveCfg = Release|Any CPU
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328}.Release|x64.Build.0 = Release|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Debug|x64.Build.0 = Debug|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Release|x64.ActiveCfg = Release|Any CPU
+		{33681D3B-B609-48F6-A365-D4D89B7558CE}.Release|x64.Build.0 = Release|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Debug|x64.Build.0 = Debug|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|x64.ActiveCfg = Release|Any CPU
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6} = {A3E71A15-D9F6-4BFE-8413-B10382CCA429}
-		{E751EDB7-E3EA-43A5-919E-14FEFE1B7D5F} = {D608168C-4B43-469C-88F3-01791E3CB081}
 		{3663CE19-154B-44EF-BC00-8078A308C225} = {D608168C-4B43-469C-88F3-01791E3CB081}
-		{E3F05CE4-8B68-47E8-A19F-FEB5B3054F0B} = {D608168C-4B43-469C-88F3-01791E3CB081}
+		{0CE1953F-44AD-4AB3-A3DB-446731E88328} = {D608168C-4B43-469C-88F3-01791E3CB081}
+		{33681D3B-B609-48F6-A365-D4D89B7558CE} = {D608168C-4B43-469C-88F3-01791E3CB081}
+		{A86A85FD-9D70-4516-9BDA-91E8188FDB96} = {D608168C-4B43-469C-88F3-01791E3CB081}
+		{89A6F9CC-D540-424C-A303-3A69E014C289} = {D608168C-4B43-469C-88F3-01791E3CB081}
 	EndGlobalSection
 EndGlobal

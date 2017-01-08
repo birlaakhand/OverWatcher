@@ -10,4 +10,10 @@ namespace OverWatcher.TradeReconMonitor.Core
     {
         public OracleQueryAbortException(string msg) : base(msg) { }
     }
+
+    class MonitorException : Exception
+    {
+        public MonitorException(string msg) : base(msg) { }
+        public MonitorException(string msg, Exception ex) : base(msg, ex) { }
+    }
 }

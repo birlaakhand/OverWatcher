@@ -5,21 +5,22 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("OverWatcher")]
+[assembly: AssemblyTitle("OverWatcher.Common.HelperFuntions")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Kiljaeden")]
-[assembly: AssemblyProduct("OverWatcher")]
-[assembly: AssemblyCopyright("Copyright © Killjaeden 2016")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("OverWatcher.Common.HelperFuntions")]
+[assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
+
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6")]
+[assembly: Guid("a86a85fd-9d70-4516-9bda-91e8188fdb96")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using OverWatcher.Common.Log;
+using OverWatcher.Common;
 namespace OverWatcher.Common.Scheduler
 {
     enum Frequency
@@ -16,15 +15,13 @@ namespace OverWatcher.Common.Scheduler
     }
     public class Schedule
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private Frequency freq;
         private Skip skip;
-        private DateTime frequencyValue;
-        private List<DateTime> skipValue;
+        private System.DateTime frequencyValue;
+        private List<System.DateTime> skipValue;
 
         public DateTime NextRun { get; set; }
-        public bool isOnTime(DateTime dt)
+        public bool isOnTime(System.DateTime dt)
         {
             if (isSkip(dt) || dt < NextRun) return false;
             CalculateNextTime();
@@ -38,22 +35,22 @@ namespace OverWatcher.Common.Scheduler
         public Schedule(string frequency, string frequencyValue,
                                                 string skip, string skipValue)
         {
-            this.skipValue = new List<DateTime>();
+            this.skipValue = new List<System.DateTime>();
             try
             {
                 freq = (Frequency)Enum.Parse(typeof(Frequency), frequency.ToUpper());
                 this.skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
                 CalculateSkip(skipValue);
                 this.frequencyValue = ParseAmbiguousDateString(frequencyValue);
-                NextRun = DateTime.Now;
+                NextRun = DateTimeHelper.ZoneNow();
             }
             catch(Exception ex)
             {
-                log.Warn(ex.Message + ", Disable Scheduler");
+                Logger.Warn(ex.Message + ", Disable Scheduler");
             }
         }
 
-        private bool isSkip(DateTime dt)
+        private bool isSkip(System.DateTime dt)
         {
             if (this.skip == Skip.DAYOFWEEK)
             {
@@ -69,7 +66,9 @@ namespace OverWatcher.Common.Scheduler
         {
             if (this.skip == Skip.DAYOFWEEK)
             {
-                this.skipValue = skipValue.Split(new char[] { ';' }).Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s))).ToList();
+                this.skipValue = skipValue
+                    .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s) + 6)).ToList();
             }
 
         }
@@ -91,7 +90,7 @@ namespace OverWatcher.Common.Scheduler
                 date = date.Replace("mm", "00");
                 date = date.Replace("ss", "00");
                 date = date.Replace("fff", "000");
-                return DateTime.ParseExact(date, "yyyy/MM/dd/hh:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture);
+                return System.DateTime.ParseExact(date, "yyyy/MM/dd/hh:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture);
             }
             catch(Exception ex)
             {

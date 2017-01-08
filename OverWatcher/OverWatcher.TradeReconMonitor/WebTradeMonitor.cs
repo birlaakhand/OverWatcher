@@ -10,19 +10,18 @@ using System.Configuration;
 using System.Threading.Tasks;
 using System.Text;
 using System.Data;
-
+using OverWatcher.Common.Log;
+using OverWatcher.Common;
 namespace OverWatcher.TradeReconMonitor.Core
 {
     public enum ProductType { Swap, Futures };
     public enum CompanyName { CBNA, CGML };
     class WebTradeMonitor :TradeMonitorBase
     {
+        private bool isError = false;
         private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private TimeZoneInfo _timeZone = TimeZoneInfo.Local;
         private Dictionary<string, string> _nameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
@@ -34,6 +33,8 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 var settings = new CefSettings();
                 settings.IgnoreCertificateErrors = true; //bug fix: theice.com SSL Certificate expired
+                settings.BrowserSubprocessPath = Common.Interface.MainBase.ProbingPath + "CefSharp.BrowserSubprocess.exe";
+                settings.LogFile = "./log/cefLog.log";
                 Cef.Initialize(settings);
 
             }
@@ -45,16 +46,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public WebTradeMonitor() : base("ICETrade")
         {
-            try
-            {               
-                _timeZone = TimeZoneInfo.FindSystemTimeZoneById(ConfigurationManager.AppSettings["TimeZone"]);
 
-            }
-            catch (Exception ex)
-            {
-                log.Warn("TimeZone Format is Wrong, Set to Local Detail: " + ex.Message);
-                _timeZone = TimeZoneInfo.Local;
-            }
         }
         #region Thread Share Fields
         internal volatile bool isDownloadCompleted = false;
@@ -67,7 +59,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
             thread.Join();
-
+            if (isError) throw new MonitorException("WebMonitor Fails");
         }
         #region Login
         private CefSharp.Cookie ConvertCookie(System.Net.Cookie cookie)
@@ -169,21 +161,20 @@ namespace OverWatcher.TradeReconMonitor.Core
                 response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
                 if (GetResponseString(response).Contains("Re-login with 2FA passcode"))
                 {
-                    log.Info("OTP Expired, Get OTP from Outlook");
+                    Logger.Info("OTP Expired, Get OTP from Outlook");
                     string otp = "";
                     using (EmailHandler email = new EmailHandler())
                     {
-                        ManageCOM(email);
                         otp = email.GetOTP(requestTime).ToString();
                     }
                     if(otp == "")
                     {
-                        log.Info("Please enter OTP:");
+                        Logger.Info("Please enter OTP:");
                         otp = Console.ReadLine();
                     }
                     else
                     {
-                        log.Info("OTP successfully load from Outlook");
+                        Logger.Info("OTP successfully load from Outlook");
                     }
                     response.Close();
                     BuildPostLoad(out post, otp);
@@ -192,20 +183,18 @@ namespace OverWatcher.TradeReconMonitor.Core
                 }
                 CookieContainer collection = new CookieContainer();
                 string sso = GetCookieHeader(response);
-                if (!sso.Contains("iceSsoCookie")) RequestSSOCookie();
+                if (!sso.Contains("iceSsoCookie")) return RequestSSOCookie();
                 WriteCookiesToDisk(null, sso);
                 collection.SetCookies(new Uri(_url), sso);
                 response.Close();
                 #endregion
-                log.Info("SSO Cookie is Ready");
+                Logger.Info("SSO Cookie is Ready");
                 return collection;
             }
             catch (Exception ex)
             {
-                log.Error(ex.ToString());
-                System.Windows.Forms.Application.Exit();
+                throw new MonitorException("Request SSO Cookie Failed", ex);
             }
-            return null;
 
         }
 
@@ -219,16 +208,16 @@ namespace OverWatcher.TradeReconMonitor.Core
             if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
             try
             {
-                log.Info("Writing cookies to disk... ");
+                Logger.Info("Writing cookies to disk... ");
                 if (!File.Exists(file))
                 {
                     File.WriteAllText(file, cookieJar);
                 }
-                log.Info("Done.");
+                Logger.Info("Done.");
             }
             catch (Exception e)
             {
-                log.Warn("Problem writing cookies to disk: " + e.GetType());
+                Logger.Warn("Problem writing cookies to disk: " + e.GetType());
             }
         }
 
@@ -237,16 +226,16 @@ namespace OverWatcher.TradeReconMonitor.Core
             if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
             if (!File.Exists(file))
             {
-                log.Info("SSO Cookie does not exist, ask for OTP");
+                Logger.Info("SSO Cookie does not exist, ask for OTP");
                 return null;
             }
             try
             {
                 return System.IO.File.ReadAllLines(file)[0];
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Console.Out.WriteLine("Problem reading cookies from disk: " + e.GetType());
+                Logger.Error(ex, "Problem reading cookies from disk: ");
                 return null;
             }
         }
@@ -256,13 +245,6 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             try
             {
-                if (!Cef.IsInitialized)
-                {
-                    var settings = new CefSettings();
-                    settings.IgnoreCertificateErrors = true; //bug fix: theice.com SSL Certificate expired
-                    Cef.Initialize(settings);
-
-                }
                 var cookieManager = Cef.GetGlobalCookieManager();
                 // Create the offscreen Chromium browser.
                 var cookie = new CefSharp.Cookie();
@@ -283,7 +265,8 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             catch (Exception ex)
             {
-                log.Error(ex);
+                Logger.Error(ex, "WebMonitor Failed");
+                isError = true;
             }
         }
         private async void AnalyzePage(object s, LoadingStateChangedEventArgs e)
@@ -292,13 +275,14 @@ namespace OverWatcher.TradeReconMonitor.Core
             if (e.IsLoading) return;
             var html = await wb.GetSourceAsync();
             if (html == "<html><head></head><body></body></html>") return;
-            log.Info("Analyzing Reports");
+            Logger.Info("Analyzing Reports");
+            DateTime now = DateTimeHelper.ZoneNow();
             var scriptTask = await wb.EvaluateScriptAsync(
                 "document.getElementById('tradeBeginDate').value = '"
-                 + TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _timeZone).ToString("dd-MMM-yyyy") + "'");
+                 + now.ToString("dd-MMM-yyyy") + "'");
             scriptTask = await wb.EvaluateScriptAsync(
                     "document.getElementById('tradeEndDate').value = '"
-                     + TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _timeZone).ToString("dd-MMM-yyyy") + "'");
+                     + now.ToString("dd-MMM-yyyy") + "'");
             for (int i = 0; i < 2; ++i)
             {
                 int temp = i;
@@ -311,7 +295,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 scriptTask = await wb.EvaluateScriptAsync(
                             "document.evaluate(\"//a[contains(., 'Show')]\", document, null, XPathResult.ANY_TYPE, null ).iterateNext().click();");
                 JavascriptResponse waitingTask = null;
-                log.Info("Retrieving Count - " + i);
+                Logger.Info("Retrieving Count - " + i);
                 while (string.IsNullOrEmpty((waitingTask?.Result as string)))
                 {
 
@@ -371,7 +355,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         string.Format("CefSharp screenshot{0}.png", temp));
 
             Console.WriteLine();
-            log.Info(string.Format("Screenshot ready. Saving to {0}", screenshotPath));
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", screenshotPath));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
@@ -382,7 +366,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             task.Dispose();
 #if DEBUG
             // Tell Windows to launch the saved image.
-            log.Info("Screenshot saved.  Launching your default image viewer...");
+            Logger.Info("Screenshot saved.  Launching your default image viewer...");
             System.Diagnostics.Process.Start(screenshotPath);
 #endif
             return Task.FromResult<object>(null);
