@@ -9,10 +9,8 @@ using System.Text;
 namespace OverWatcher.Common.HelperFunctions
 {
     public enum SortDirection { ASC, DESC };
-    class HelperFunctions
+    public class HelperFunctions
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public static string SaveDataTableToCSV(DataTable dt, string fileNamePostfx)
         {
             StringBuilder sb = new StringBuilder();
@@ -40,7 +38,8 @@ namespace OverWatcher.Common.HelperFunctions
             dt = dt.DefaultView.ToTable();
         }
     }
-    class Dictionary<TKey1, TKey2, TValue> : Dictionary<Tuple<TKey1, TKey2>, TValue>, IDictionary<Tuple<TKey1, TKey2>, TValue>
+
+    public class Dictionary<TKey1, TKey2, TValue> : Dictionary<Tuple<TKey1, TKey2>, TValue>, IDictionary<Tuple<TKey1, TKey2>, TValue>
     {
 
         public TValue this[TKey1 key1, TKey2 key2]

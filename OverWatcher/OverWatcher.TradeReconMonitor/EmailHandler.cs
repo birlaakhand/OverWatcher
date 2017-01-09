@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Office.Interop.Outlook;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Runtime.InteropServices;
-using System.Data;
+using OverWatcher.Common.Log;
 using System.Diagnostics;
 
 namespace OverWatcher.TradeReconMonitor.Core
@@ -17,8 +14,6 @@ namespace OverWatcher.TradeReconMonitor.Core
     {
         private Application outlook;
         private _NameSpace ns = null;
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #region Thread Sync
         private AutoResetEvent syncLock = new AutoResetEvent(false);
         private MailItem awaitingMail = null;
@@ -46,7 +41,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         public void SendResultEmail(string HTMLbody, string body, List<string> attachments)
         {
-            log.Info("Sending Result Email...");
+            Logger.Info("Sending Result Email...");
             MailItem mailItem = null;
             try
             {
@@ -60,7 +55,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             catch(System.Exception ex)
             {
-                log.Error("Send Result Email Failed --" + ex);
+                Logger.Error("Send Result Email Failed --" + ex);
                 this.Dispose();
             }
 
@@ -75,7 +70,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 if (inboxFolder == null) return otp;
                 inboxFolder.Items.Sort("[ReceivedTime]", true);
                 MailItem mail = null;
-                log.Info("Retreiving OTP Email...");
+                Logger.Info("Retreiving OTP Email...");
                 for (int i = 1; i <= inboxFolder.Items.Count; ++i)
                 {
                     MailItem tmp = GetCOM<MailItem>(inboxFolder.Items[i]);
@@ -103,7 +98,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             catch(System.Exception ex)
             {
-                log.Warn("Retreiving OTP Email Failed --" + ex.Message);
+                Logger.Warn("Retreiving OTP Email Failed --" + ex.Message);
                 this.Dispose();
                 return otp;
             }

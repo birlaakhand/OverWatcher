@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using OverWatcher.Common.Log;
 using System.Timers;
 
 namespace OverWatcher.Common.Scheduler
 {
     public class TaskScheduler
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                    (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         System.Timers.Timer timer;
         public delegate void TaskDelegate();
         private Dictionary<TaskDelegate, Schedule> task;
@@ -37,13 +35,13 @@ namespace OverWatcher.Common.Scheduler
         {
             foreach (KeyValuePair<TaskDelegate, Schedule> pair in task)
             {
-                DateTime now = DateTime.Now;
+                System.DateTime now = System.DateTime.Now;
                 if (pair.Value.isOnTime(now))
                 {
-                    log.Info(string.Format("Task Start",
+                    Log.Logger.Info(string.Format("Task Start",
                                 now.ToString("MM/dd/yyyy hh:mm")));
                     pair.Key.Invoke();
-                    log.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
+                    Log.Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
                 }
             }
         }

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using OverWatcher.Common.Log;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
@@ -11,8 +7,6 @@ namespace OverWatcher.TradeReconMonitor.Core
         public int Futures { get; protected set; }
         public int Swap { get; protected set; }
         protected string MonitorTitle = "Base";
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         protected TradeMonitorBase(string title)
         {
             MonitorTitle = title;
@@ -26,7 +20,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public void LogCount()
         {
-            log.Info(MonitorTitle + " Future count:" + Futures
+            Logger.Info(MonitorTitle + " Future count:" + Futures
                                 + "   "
                                 + "Cleared count:" + Swap);
         }

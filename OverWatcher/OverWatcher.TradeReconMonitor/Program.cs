@@ -8,17 +8,16 @@ using System.Linq;
 using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Scheduler;
 using System.Threading;
-
+using OverWatcher.Common.Log;
+using OverWatcher.Common.Interface;
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class Program
+    class Program : MainBase
     {
         private static bool EnableComparison;
         private static bool EnableSaveLocal;
         private static bool EnableEmail;
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static bool IsICESilent = false;
         public static void Main(string[] args)
         {
@@ -38,7 +37,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                                             ConfigurationManager.AppSettings["SkipValue"]);
             if (!schedule.isSingleRun())
             {
-                log.Info("Start in Scheduled Mode");
+                Logger.Info("Start in Scheduled Mode");
                 int interval = 1;
                 int.TryParse(ConfigurationManager.AppSettings["SchedulerBaseInterval"], out interval);
                 TaskScheduler scheduler = new TaskScheduler(interval);
@@ -51,9 +50,9 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             else
             {
-                log.Info("Start in Single Run Mode");
+                Logger.Info("Start in Single Run Mode");
                 StartReconsiliation();
-                log.Info("Checking Finished");
+                Logger.Info("Checking Finished");
             }
 
         }
@@ -82,56 +81,56 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 Directory.CreateDirectory(ConfigurationManager.AppSettings["PersistentFolderPath"]);
             }
-            log.Info(string.Format("Start Reconsiliate Trade at {0}",
+            Logger.Info(string.Format("Start Reconsiliate Trade at {0}",
                     DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
-            LoadOptions();
-            WebTradeMonitor p = new WebTradeMonitor();
-            log.Info("Clean up Temp Folder...");
-            CleanUpTempFolder();
-            p.run();
-            p.LogCount();
-            if(IsICESilent == true && p.Futures + p.Swap > 0)
+            try
             {
-                using (EmailHandler email = new EmailHandler())
+                LoadOptions();
+                WebTradeMonitor p = new WebTradeMonitor();
+                Logger.Info("Clean up Temp Folder...");
+                CleanUpTempFolder();
+                p.run();
+                p.LogCount();
+                if (IsICESilent == true && p.Futures + p.Swap > 0)
                 {
-                    email.SendResultEmail(p.CountToHTML(), 
-                        "First record of trade for today", null);
-                }
-                IsICESilent = false;
-            }
-            if (p.Futures + p.Swap == 0) IsICESilent = true;
-            using (ExcelParser parser = new ExcelParser())
-            {
-                
-                if (!EnableComparison)
-                {
-                    log.Info("Non Comparison Mode");
-                    log.Info("Saving To Local...");
-                    parser.SaveAsCSV();
-                    if (!EnableEmail)
+                    using (EmailHandler email = new EmailHandler())
                     {
-                        log.Info("Saving Count Result...");
-                        p.OutputCountToFile();
+                        email.SendResultEmail(p.CountToHTML(),
+                            "First record of trade for today", null);
+                    }
+                    IsICESilent = false;
+                }
+                if (p.Futures + p.Swap == 0) IsICESilent = true;
+                using (ExcelParser parser = new ExcelParser())
+                {
+
+                    if (!EnableComparison)
+                    {
+                        Logger.Info("Non Comparison Mode");
+                        Logger.Info("Saving To Local...");
+                        parser.SaveAsCSV();
+                        if (!EnableEmail)
+                        {
+                            Logger.Info("Saving Count Result...");
+                            p.OutputCountToFile();
+                        }
+                        else
+                        {
+                            Logger.Info("Add Count Result To Email...");
+                            using (EmailHandler email = new EmailHandler())
+                            {
+                                email.SendResultEmail(p.CountToHTML(), "", null);
+                            }
+                        }
                     }
                     else
                     {
-                        log.Info("Add Count Result To Email...");
-                        using (EmailHandler email = new EmailHandler())
-                        {
-                            email.SendResultEmail(p.CountToHTML(), "",  null);
-                        }
-                    }
-                }
-                else
-                {
-                    log.Info("Start Comparison...");
-                    try
-                    {
+                        Logger.Info("Start Comparison...");
                         var ICEResult = parser.GetDataTableList();
                         OracleDBMonitor db = new OracleDBMonitor();
                         int queryDelay = 0;
                         int.TryParse(ConfigurationManager.AppSettings["DBQueryDelay"], out queryDelay);
-                        log.Info(string.Format("Wait to query Database, waiting time = {0} seconds", queryDelay));
+                        Logger.Info(string.Format("Wait to query Database, waiting time = {0} seconds", queryDelay));
                         Thread.Sleep(queryDelay * 1000);
                         var DBResult = db.QueryDB();
                         db.LogCount();
@@ -139,36 +138,38 @@ namespace OverWatcher.TradeReconMonitor.Core
                         diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
                         if (diff.All(d => d.Rows.Count == 0))
                         {
-                            log.Info("Reconsiliation Matches, No Alert Send");
+                            Logger.Info("Reconsiliation Matches, No Alert Send");
                         }
                         else if (EnableEmail)
                         {
                             //to-do
-                            log.Info("Email Enabled...");
+                            Logger.Info("Email Enabled...");
                             using (EmailHandler email = new EmailHandler())
                             {
-                                log.Info("Add Count Result To Email...");
-                                log.Info("Add Comparison Result To Email...");
+                                Logger.Info("Add Count Result To Email...");
+                                Logger.Info("Add Comparison Result To Email...");
                                 var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
-                                log.Info("Add Comparison Result To Attachment...");
+                                Logger.Info("Add Comparison Result To Attachment...");
                                 email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), "", attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)
                         {
-                            log.Info("Saving To Local...");
+                            Logger.Info("Saving To Local...");
                             p.OutputCountToFile();
                             DBResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_DB"));
                             ICEResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_ICE"));
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error("Comparison Failed...   " + ex);
-                    }
 
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Skip This Round");
+                return;
+            }
+
         }
 
         private static string BuildComparisonResultBody(List<DataTable> diff)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Configuration;
 using Oracle.ManagedDataAccess.Client;
-
+using OverWatcher.Common.Log;
 namespace OverWatcher.TradeReconMonitor.Core
 {
     sealed class DBConnector :IDisposable
@@ -16,8 +16,6 @@ namespace OverWatcher.TradeReconMonitor.Core
         private static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
         private static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
         private static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private OracleConnection connection = null;
         public DBConnector()
         {
@@ -42,7 +40,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             catch (OracleException ex)
             {
-                log.Error(ex.ToString());
+                Logger.Error(ex.ToString());
                 connection.Dispose();
                 connection = null;
                 throw ex; 

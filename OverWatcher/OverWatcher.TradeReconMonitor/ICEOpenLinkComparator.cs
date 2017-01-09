@@ -2,16 +2,14 @@
 using System.Collections.Generic;
 using System.Data;
 using OverWatcher.Common.HelperFunctions;
-
+using OverWatcher.Common.Log;
 namespace OverWatcher.TradeReconMonitor.Core
 {
     class ICEOpenLinkComparator
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
         {
-            log.Info("Diff ICE and Oracle...");
+            Logger.Info("Diff ICE and Oracle...");
             List<DataTable> diff = new List<DataTable>();
             foreach(DataTable dt in iceList)
             {

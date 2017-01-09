@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Office.Interop.Excel;
 using System.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
+using OverWatcher.Common.Log;
 using System.Runtime.InteropServices;
 using System.Data;
 using Microsoft.VisualBasic.FileIO;
@@ -26,8 +25,6 @@ namespace OverWatcher.TradeReconMonitor.Core
         private readonly string DownloadPath;
         private Application excel;
         private Dictionary<CompanyName, ProductType, Range> RangeTable;
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         #endregion
         #region Constructors
         public ExcelParser()
@@ -46,7 +43,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         #region COM Creation
         private void Init()
         {
-            log.Info("Initializing Excel Parser...");
+            Logger.Info("Initializing Excel Parser...");
             RangeTable = new Dictionary<CompanyName, ProductType, Range>();
 
             cleanUpCSVFolder();
@@ -54,7 +51,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         private void Extract()
         {
-            log.Info("Analyzing Downloaded Excels and Extracting Data...");
+            Logger.Info("Analyzing Downloaded Excels and Extracting Data...");
             foreach (var xls in Directory.GetFiles(DownloadPath, "*"
                 + ConfigurationManager.AppSettings["DownloadedFileType"]))
             {
@@ -103,7 +100,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         public void SaveAsCSV()
         {
-            log.Info("Saving Data into CSV..");
+            Logger.Info("Saving Data into CSV..");
             RangeTable.GetCollections().ForEach(s =>
             {
                 RangeToCSV(s.Item1, s.Item2, s.Item3);
@@ -174,7 +171,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             catch (MalformedLineException)
             {
-                log.Error(string.Format("Line Number: {0} Value: {1}", parser.ErrorLineNumber, parser.ErrorLine));
+                Logger.Error(string.Format("Line Number: {0} Value: {1}", parser.ErrorLineNumber, parser.ErrorLine));
                 return;
             }
 
@@ -247,7 +244,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 if (disposing)
                 {
-                    log.Info("Closing Excel Parser...");
+                    Logger.Info("Closing Excel Parser...");
                     // TODO: dispose managed state (managed objects).
                     CloseCOM(COMCloseType.Exit);
                     excel.Quit();

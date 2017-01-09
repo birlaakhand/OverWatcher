@@ -3,19 +3,16 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OverWatcher.Common.Log;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
     class OracleDBMonitor : TradeMonitorBase
     {
         public OracleDBMonitor() : base("OpenLinkTrade") { }
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public List<DataTable> QueryDB()
         {
-            log.Info("Query the Oracle Database..");
+            Logger.Info("Query the Oracle Database..");
             var dtList = new List<DataTable>();
             using (DBConnector db = new DBConnector())
             {
