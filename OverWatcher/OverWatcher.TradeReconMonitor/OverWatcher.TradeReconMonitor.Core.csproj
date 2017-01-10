@@ -7,7 +7,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OverWatcher</RootNamespace>
     <AssemblyName>OverWatcher</AssemblyName>
@@ -59,7 +59,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>./b</ApplicationIcon>
+    <ApplicationIcon>Build/icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestCertificateThumbprint>2FB92B72322956E90E9871326C16C68D38701321</ManifestCertificateThumbprint>
@@ -196,6 +196,9 @@
       <Name>OverWatcher.Common.TaskScheduler</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
   <Import Project="..\OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets')" />
@@ -216,7 +219,7 @@
   </Target>
   <Import Project="..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets')" />
   <Import Project=".\Build\CefSharp.targets" Condition="Exists('.\Build\CefSharp.targets')" />
-  <Import Project="..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets" Condition="Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets')" />
+  <Import Project=".\Build\CefSharp.OffScreen.targets" Condition="Exists('.\Build\CefSharp.OffScreen.targets')" />
   <PropertyGroup>
     <PostBuildEvent>if not exist $(TargetDir)bin mkdir $(TargetDir)bin
 del /F "$(TargetDir)CefSharp*"

@@ -12,10 +12,9 @@ namespace OverWatcher.TradeReconMonitor.Core.Tests
     public class ICEOpenLinkComparatorTests
     {
         [TestMethod()]
-        public void DiffTest()
+        public void DiffValidation()
         {
-            ICEOpenLinkComparator ice = new ICEOpenLinkComparator();
-            int i = 0;
+            ICEOpenLinkComparator c = new ICEOpenLinkComparator();
         }
     }
 }
