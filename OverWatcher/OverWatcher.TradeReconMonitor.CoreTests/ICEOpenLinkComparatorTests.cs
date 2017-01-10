@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using OverWatcher.Common.HelperFunctions;
 namespace OverWatcher.TradeReconMonitor.Core.Tests
 {
     [TestClass()]
@@ -15,6 +15,10 @@ namespace OverWatcher.TradeReconMonitor.Core.Tests
         public void DiffValidation()
         {
             ICEOpenLinkComparator c = new ICEOpenLinkComparator();
+            var ice = HelperFunctions.CSVToDataTable("");
+            var opl = HelperFunctions.CSVToDataTable("");
+            c.Diff(ice, opl);
+            Assert.IsTrue(true);
         }
     }
 }

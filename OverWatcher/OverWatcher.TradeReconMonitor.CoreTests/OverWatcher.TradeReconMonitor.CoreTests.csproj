@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -55,6 +56,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OverWatcher.Common.HelperFuntions\OverWatcher.Common.HelperFuntions.csproj">
+      <Project>{a86a85fd-9d70-4516-9bda-91e8188fdb96}</Project>
+      <Name>OverWatcher.Common.HelperFuntions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OverWatcher.TradeReconMonitor\OverWatcher.TradeReconMonitor.Core.csproj">
       <Project>{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}</Project>
       <Name>OverWatcher.TradeReconMonitor.Core</Name>
