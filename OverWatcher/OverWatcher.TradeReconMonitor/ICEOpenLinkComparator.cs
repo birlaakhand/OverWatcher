@@ -5,7 +5,7 @@ using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Logging;
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class ICEOpenLinkComparator
+    public class ICEOpenLinkComparator
     {
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
         {
