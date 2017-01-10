@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using OverWatcher.Common.HelperFunctions;
-using OverWatcher.Common.Log;
+using OverWatcher.Common.Logging;
 namespace OverWatcher.TradeReconMonitor.Core
 {
     class ICEOpenLinkComparator

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using log4net;
 using System.Diagnostics;
 
-namespace OverWatcher.Common.Log
+namespace OverWatcher.Common.Logging
 {
     public class Logger
     {

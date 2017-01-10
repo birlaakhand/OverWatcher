@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using OverWatcher.Common.Log;
+using OverWatcher.Common.Logging;
 using System.Timers;
 
 namespace OverWatcher.Common.Scheduler
@@ -38,10 +38,10 @@ namespace OverWatcher.Common.Scheduler
                 System.DateTime now = System.DateTime.Now;
                 if (pair.Value.isOnTime(now))
                 {
-                    Log.Logger.Info(string.Format("Task Start",
+                    Logger.Info(string.Format("Task Start",
                                 now.ToString("MM/dd/yyyy hh:mm")));
                     pair.Key.Invoke();
-                    Log.Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
+                    Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
                 }
             }
         }

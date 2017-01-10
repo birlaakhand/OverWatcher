@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Configuration;
-using OverWatcher.Common.Log;
+using OverWatcher.Common.Logging;
 
 namespace OverWatcher.Common
 {

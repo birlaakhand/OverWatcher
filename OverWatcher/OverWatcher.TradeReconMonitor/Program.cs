@@ -8,7 +8,7 @@ using System.Linq;
 using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Scheduler;
 using System.Threading;
-using OverWatcher.Common.Log;
+using OverWatcher.Common.Logging;
 using OverWatcher.Common.Interface;
 namespace OverWatcher.TradeReconMonitor.Core
 {

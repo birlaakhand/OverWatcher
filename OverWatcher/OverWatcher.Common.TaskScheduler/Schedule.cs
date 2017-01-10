@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using OverWatcher.Common.Log;
-using OverWatcher.Common;
+using OverWatcher.Common.Logging;
+
 namespace OverWatcher.Common.Scheduler
 {
     enum Frequency

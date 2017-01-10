@@ -32,14 +32,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.AppContext, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.AppContext.4.1.0\lib\net46\System.AppContext.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="System.Collections.NonGeneric, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Collections.NonGeneric.4.0.1\lib\net46\System.Collections.NonGeneric.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
@@ -49,16 +41,13 @@
     <Compile Include="TaskScheduler.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\OverWatcher.Common.DateTimeHelper\OverWatcher.Common.DateTimeHelper.csproj">
       <Project>{33681d3b-b609-48f6-a365-d4d89b7558ce}</Project>
       <Name>OverWatcher.Common.DateTimeHelper</Name>
     </ProjectReference>
-    <ProjectReference Include="..\OverWatcher.Common.Logger\OverWatcher.Common.Logger.csproj">
+    <ProjectReference Include="..\OverWatcher.Common.Logger\OverWatcher.Common.Logging.csproj">
       <Project>{0ce1953f-44ad-4ab3-a3db-446731e88328}</Project>
-      <Name>OverWatcher.Common.Logger</Name>
+      <Name>OverWatcher.Common.Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
