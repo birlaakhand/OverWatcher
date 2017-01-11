@@ -32,6 +32,19 @@ namespace OverWatcher.Common.HelperFunctions
         {
             return cell.Contains(",") ?  "\"" + cell + "\"" : cell;
         }
+
+        public static void SortDataTable<T>(ref DataTable dt, string colName, SortDirection direction)
+        {
+            DataTable tmp = dt.Clone();
+            tmp.Columns[colName].DataType = typeof(T);
+            foreach (DataRow dr in dt.Rows)
+            {
+                tmp.ImportRow(dr);
+            }
+            tmp.DefaultView.Sort = colName + " " + direction;
+            dt = tmp.DefaultView.ToTable();
+        }
+
         public static void SortDataTable(ref DataTable dt, string colName, SortDirection direction)
         {
             dt.DefaultView.Sort = colName + " " + direction;
@@ -40,6 +53,7 @@ namespace OverWatcher.Common.HelperFunctions
         public static DataTable CSVToDataTable(string strFilePath)
         {
             DataTable dt = new DataTable();
+            dt.TableName = Path.GetFileNameWithoutExtension(strFilePath);
             using (StreamReader sr = new StreamReader(strFilePath))
             {
                 string[] headers = CSVLineSpliter(sr.ReadLine());

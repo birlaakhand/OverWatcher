@@ -87,7 +87,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>%25systemroot%25\System32\xcopy /i /s /r /y /d "$(SolutionDir)OverWatcher.TradeReconMonitor\bin\Debug\bin" $(TargetDir)bin
-%25systemroot%25\System32\xcopy /d "$(SolutionDir)OverWatcher.TradeReconMonitor\bin\Debug\OverWatcher.exe.config" $(TargetDir)</PostBuildEvent>
+%25systemroot%25\System32\xcopy /d "$(SolutionDir)OverWatcher.TradeReconMonitor\bin\Debug\OverWatcher.exe.config" $(TargetDir)
+%25systemroot%25\System32\xcopy /i /s /r /y /d "$(ProjectDir)Testcase" $(TargetDir)Testcase</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
