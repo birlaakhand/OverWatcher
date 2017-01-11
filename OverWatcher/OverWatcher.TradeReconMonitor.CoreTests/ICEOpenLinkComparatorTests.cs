@@ -5,17 +5,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using OverWatcher.Common.HelperFunctions;
 namespace OverWatcher.TradeReconMonitor.Core.Tests
 {
     [TestClass()]
     public class ICEOpenLinkComparatorTests
     {
         [TestMethod()]
-        public void DiffTest()
+        public void DiffValidation()
         {
-            PrivateObject diff = new PrivateObject(typeof(ICEOpenLinkComparator));
-
+            ICEOpenLinkComparator c = new ICEOpenLinkComparator();
+            var ice = HelperFunctions.CSVToDataTable("");
+            var opl = HelperFunctions.CSVToDataTable("");
+            c.Diff(ice, opl);
+            Assert.IsTrue(true);
         }
     }
 }

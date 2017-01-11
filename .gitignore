@@ -12,6 +12,7 @@
 [Rr]elease/
 x64/
 build/
+!OverWatcher.TradeReconMonitor/Build/
 bld/
 [Bb]in/
 [Oo]bj/

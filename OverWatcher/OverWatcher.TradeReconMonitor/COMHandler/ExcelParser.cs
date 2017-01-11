@@ -154,51 +154,17 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         private void TrimCSV(CompanyName name, ProductType type)
         {
-            string[,] parsedCsv;
             string path = OutputPath + name + type + ".csv";
-            List<string[]> csv = new List<string[]>();
-            TextFieldParser parser = new TextFieldParser(new FileStream(path, FileMode.Open));
-            parser.Delimiters = new string[] { "," };
-            parser.TextFieldType = FieldType.Delimited;
-            int maxLines = 200, lineCount = 0;
-
-            try
+            System.Data.DataTable csv = HelperFunctions.CSVToDataTable(path);
+            csv.TableName = "" + name + type;
+            foreach(DataColumn col in csv.Columns)
             {
-                while (!parser.EndOfData && lineCount++ < maxLines)
+                if (selectedCol.All(s => s != col.ColumnName))
                 {
-                    csv.Add(parser.ReadFields());
+                    csv.Columns.Remove(col);
                 }
             }
-            catch (MalformedLineException)
-            {
-                Logger.Error(string.Format("Line Number: {0} Value: {1}", parser.ErrorLineNumber, parser.ErrorLine));
-                return;
-            }
-
-            parsedCsv = new string[csv.Count, csv[0].Length];
-
-            for (int i = 0; i < csv.Count; i++)
-            {
-                for (int j = 0; j < csv[i].Length; j++)
-                {
-                    parsedCsv[i, j] = csv[i][j];
-                }
-            }
-            parser.Close();
-            StringBuilder outputCSV = new StringBuilder();
-            foreach(var lines in csv)
-            {
-                List<string> lineBuffer = new List<string>();
-                for(int i = 0; i < lines.Length; ++i)
-                {
-                    if(selectedCol.Any(s => s == csv[0][i]))
-                    {
-                        lineBuffer.Add(lines[i]);
-                    }
-                }
-                outputCSV.AppendLine(string.Join(",", lineBuffer));
-            }
-            File.WriteAllText(path, outputCSV.ToString());
+            HelperFunctions.SaveDataTableToCSV(csv, "");
         }
 
         private void TrimDataTable(System.Data.DataTable dt)

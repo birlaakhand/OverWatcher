@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}</ProjectGuid>
+    <ProjectGuid>{4B4FB5FD-F80E-4D81-9E35-D1C98030C2FE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>OverWatcher.TradeReconMonitor.CoreTests</RootNamespace>
@@ -18,7 +18,7 @@
     <TestProjectType>UnitTest</TestProjectType>
     <TargetFrameworkProfile />
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -27,7 +27,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -37,6 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Data" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -55,6 +56,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OverWatcher.Common.HelperFuntions\OverWatcher.Common.HelperFuntions.csproj">
+      <Project>{a86a85fd-9d70-4516-9bda-91e8188fdb96}</Project>
+      <Name>OverWatcher.Common.HelperFuntions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OverWatcher.TradeReconMonitor\OverWatcher.TradeReconMonitor.Core.csproj">
       <Project>{29497D8A-3D51-4B75-B1EF-6F9DC81F8FB6}</Project>
       <Name>OverWatcher.TradeReconMonitor.Core</Name>
@@ -80,6 +85,10 @@
   </Choose>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>%25systemroot%25\System32\xcopy /i /s /r /y /d "$(SolutionDir)OverWatcher.TradeReconMonitor\bin\Debug\bin" $(TargetDir)bin
+%25systemroot%25\System32\xcopy /d "$(SolutionDir)OverWatcher.TradeReconMonitor\bin\Debug\OverWatcher.exe.config" $(TargetDir)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -37,6 +37,54 @@ namespace OverWatcher.Common.HelperFunctions
             dt.DefaultView.Sort = colName + " " + direction;
             dt = dt.DefaultView.ToTable();
         }
+        public static DataTable CSVToDataTable(string strFilePath)
+        {
+            DataTable dt = new DataTable();
+            using (StreamReader sr = new StreamReader(strFilePath))
+            {
+                string[] headers = CSVLineSpliter(sr.ReadLine());
+                foreach (string header in headers)
+                {
+                    dt.Columns.Add(header);
+                }
+                while (!sr.EndOfStream)
+                {
+                    string[] rows = CSVLineSpliter(sr.ReadLine());
+                    DataRow dr = dt.NewRow();
+                    for (int i = 0; i < headers.Length; i++)
+                    {
+                        dr[i] = rows[i];
+                    }
+                    dt.Rows.Add(dr);
+                }
+
+            }
+
+
+            return dt;
+        }
+
+        private static string[] CSVLineSpliter(string line)
+        {
+            List<string> buffer = new List<string>();
+            bool isQuoted = false;
+            StringBuilder stringBuffer = new StringBuilder();
+            foreach(char c in line.ToCharArray())
+            {
+                if (c == '\"') isQuoted = !isQuoted;
+                else if(!isQuoted && c == ',')
+                {
+                    buffer.Add(stringBuffer.ToString());
+                    stringBuffer.Clear();
+                }
+                else
+                {
+                    stringBuffer.Append(c);
+                }
+
+            }
+            return buffer.ToArray<string>();
+        }
     }
 
     public class Dictionary<TKey1, TKey2, TValue> : Dictionary<Tuple<TKey1, TKey2>, TValue>, IDictionary<Tuple<TKey1, TKey2>, TValue>
