@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Logging;
+
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    public class ICEOpenLinkComparator
+
+    class ICEOpenLinkComparator
     {
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
         {
