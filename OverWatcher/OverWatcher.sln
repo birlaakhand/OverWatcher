@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.HelperFu
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OverWatcher.Common.Interface", "OverWatcher.Common.Interface\OverWatcher.Common.Interface.shproj", "{89A6F9CC-D540-424C-A303-3A69E014C289}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.TradeReconMonitor.CoreTests", "OverWatcher.TradeReconMonitor.CoreTests\OverWatcher.TradeReconMonitor.CoreTests.csproj", "{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6}*SharedItemsImports = 4
@@ -62,6 +64,14 @@ Global
 		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|Any CPU.ActiveCfg = Release|x64
 		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|x64.ActiveCfg = Release|x64
 		{A86A85FD-9D70-4516-9BDA-91E8188FDB96}.Release|x64.Build.0 = Release|x64
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Debug|x64.Build.0 = Debug|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Release|x64.ActiveCfg = Release|Any CPU
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,5 +83,6 @@ Global
 		{33681D3B-B609-48F6-A365-D4D89B7558CE} = {D608168C-4B43-469C-88F3-01791E3CB081}
 		{A86A85FD-9D70-4516-9BDA-91E8188FDB96} = {D608168C-4B43-469C-88F3-01791E3CB081}
 		{89A6F9CC-D540-424C-A303-3A69E014C289} = {D608168C-4B43-469C-88F3-01791E3CB081}
+		{504DADEB-9FAE-4AFD-8A61-045BAC04F0F1} = {A3E71A15-D9F6-4BFE-8413-B10382CCA429}
 	EndGlobalSection
 EndGlobal
