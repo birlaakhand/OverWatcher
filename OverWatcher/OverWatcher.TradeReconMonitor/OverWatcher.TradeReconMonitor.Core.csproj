@@ -124,7 +124,8 @@
     <Compile Include="COMHandler\COMInterfaceBase.cs" />
     <Compile Include="COMHandler\COMManagerBase.cs" />
     <Compile Include="COMHandler\ExcelParser.cs" />
-    <Compile Include="ICEOpenLinkComparator.cs" />
+    <Compile Include="Comparator\ComparatorFilters.cs" />
+    <Compile Include="Comparator\ICEOpenLinkComparator.cs" />
     <Compile Include="Database\DBConnector.cs" />
     <Compile Include="COMHandler\EmailHandler.cs" />
     <Compile Include="HTMLGenerator.cs" />
