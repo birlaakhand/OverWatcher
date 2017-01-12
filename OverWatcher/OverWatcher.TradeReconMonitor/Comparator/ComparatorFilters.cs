@@ -26,9 +26,25 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             foreach (CompanyName c in Enum.GetValues(typeof(CompanyName)))
             {
-                diff.FindAll(d => d.TableName.Contains(c.ToString()));
-                DataTable swap = diff.Find(d => d.TableName.Contains(ProductType.Swap.ToString()));
-                DataTable future = diff.Find(d => d.TableName.Contains(ProductType.Futures.ToString()));
+                int swapIndex = -1;
+                int futureIndex = -1;
+                DataTable swap = null;
+                DataTable future = null;
+                for(int i = 0; i < diff.Count; i++)
+                {
+                    if(diff[i].TableName.Contains(c.ToString()) &&
+                       diff[i].TableName.Contains(ProductType.Swap.ToString()))
+                    {
+                        swap = diff[i];
+                        swapIndex = i;
+                    }
+                    if (diff[i].TableName.Contains(c.ToString()) &&
+                        diff[i].TableName.Contains(ProductType.Futures.ToString()))
+                    {
+                        future = diff[i];
+                        futureIndex = i;
+                    }
+                }
                 if (swap == null || future == null) return;
                 HelperFunctions.SortDataTable<int>(ref swap, "Deal ID", SortDirection.ASC);
                 HelperFunctions.SortDataTable<int>(ref future, "Deal ID", SortDirection.ASC);
@@ -37,14 +53,18 @@ namespace OverWatcher.TradeReconMonitor.Core
                 while (count < swap.Rows.Count && count < future.Rows.Count)
                 {
                     if (swap.Rows[count]["Deal ID"] == future.Rows[count]["Deal ID"] &&
-                        swap.Rows[count]["B/S"] != future.Rows[count]["B/S"] &&
-                        swap.Rows[count]["Product"] == future.Rows[count]["Product"] &&
+                        swap.Rows[count]["B/S"] != future.Rows[count]["B/S"] &&                     
                         swap.Rows[count]["Contract"] == future.Rows[count]["Contract"] &&
                         swap.Rows[count]["Lots"] == future.Rows[count]["Lots"] &&
-                        swap.Rows[count]["Trader"] == future.Rows[count]["Trader"])
+                        swap.Rows[count]["Trader"] == future.Rows[count]["Trader"] &&
+                        swap.Rows[count]["Product"].ToString().Length > future.Rows[count]["Product"].ToString().Length ?
+                            swap.Rows[count]["Product"].ToString().Contains(future.Rows[count]["Product"].ToString()) :
+                            future.Rows[count]["Product"].ToString().Contains(swap.Rows[count]["Product"].ToString()))
                     {
                         swap.Rows.Remove(swap.Rows[count]);
+                        diff[swapIndex] = swap;
                         future.Rows.Remove(future.Rows[count]);
+                        diff[futureIndex] = future;
                     }
                     ++count;
                 }
