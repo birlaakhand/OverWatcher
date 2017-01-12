@@ -26,28 +26,12 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             foreach (CompanyName c in Enum.GetValues(typeof(CompanyName)))
             {
-                int swapIndex = -1;
-                int futureIndex = -1;
-                DataTable swap = null;
-                DataTable future = null;
-                for(int i = 0; i < diff.Count; i++)
-                {
-                    if(diff[i].TableName.Contains(c.ToString()) &&
-                       diff[i].TableName.Contains(ProductType.Swap.ToString()))
-                    {
-                        swap = diff[i];
-                        swapIndex = i;
-                    }
-                    if (diff[i].TableName.Contains(c.ToString()) &&
-                        diff[i].TableName.Contains(ProductType.Futures.ToString()))
-                    {
-                        future = diff[i];
-                        futureIndex = i;
-                    }
-                }
+                var tables = diff.FindAll(d => d.TableName.Contains(c.ToString()));
+                DataTable swap = tables.Find(d => d.TableName.Contains(ProductType.Swap.ToString()));
+                DataTable future = tables.Find(d => d.TableName.Contains(ProductType.Futures.ToString()));
                 if (swap == null || future == null) return;
-                HelperFunctions.SortDataTable<int>(ref swap, "Deal ID", SortDirection.ASC);
-                HelperFunctions.SortDataTable<int>(ref future, "Deal ID", SortDirection.ASC);
+                HelperFunctions.SortDataTable<int>(swap, "Deal ID", SortDirection.ASC);
+                HelperFunctions.SortDataTable<int>(future, "Deal ID", SortDirection.ASC);
                 int count = 0;
                 LinkedList<KeyValuePair<int, int>> filtered = new LinkedList<KeyValuePair<int, int>>();
                 while (count < swap.Rows.Count && count < future.Rows.Count)
@@ -61,10 +45,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                             swap.Rows[count]["Product"].ToString().Contains(future.Rows[count]["Product"].ToString()) :
                             future.Rows[count]["Product"].ToString().Contains(swap.Rows[count]["Product"].ToString()))
                     {
-                        swap.Rows.Remove(swap.Rows[count]);
-                        diff[swapIndex] = swap;
+                       swap.Rows.Remove(swap.Rows[count]);
                         future.Rows.Remove(future.Rows[count]);
-                        diff[futureIndex] = future;
                     }
                     ++count;
                 }

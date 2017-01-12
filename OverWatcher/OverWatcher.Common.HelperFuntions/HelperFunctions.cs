@@ -33,7 +33,7 @@ namespace OverWatcher.Common.HelperFunctions
             return cell.Contains(",") ?  "\"" + cell + "\"" : cell;
         }
 
-        public static void SortDataTable<T>(ref DataTable dt, string colName, SortDirection direction)
+        public static void SortDataTable<T>(DataTable dt, string colName, SortDirection direction)
         {
             DataTable tmp = dt.Clone();
             tmp.Columns[colName].DataType = typeof(T);
@@ -42,13 +42,19 @@ namespace OverWatcher.Common.HelperFunctions
                 tmp.ImportRow(dr);
             }
             tmp.DefaultView.Sort = colName + " " + direction;
-            dt = tmp.DefaultView.ToTable();
+            dt.Clear();
+            foreach(DataRow dr in tmp.DefaultView.ToTable().Rows)
+            {
+                dt.ImportRow(dr);
+            }
         }
 
-        public static void SortDataTable(ref DataTable dt, string colName, SortDirection direction)
+        public static void SortDataTable(DataTable dt, string colName, SortDirection direction)
         {
             dt.DefaultView.Sort = colName + " " + direction;
-            dt = dt.DefaultView.ToTable();
+            var tmp = dt.DefaultView.ToTable();
+            dt.Clear();
+            dt.Merge(tmp);
         }
         public static DataTable CSVToDataTable(string strFilePath)
         {
