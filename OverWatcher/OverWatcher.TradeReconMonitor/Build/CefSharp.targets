@@ -3,14 +3,15 @@
   <Target Name="PlatformCheck" BeforeTargets="ResolveAssemblyReferences" Condition="(('$(Platform)' != 'x86') AND ('$(Platform)' != 'x64') AND ('$(Platform)' != 'Win32') AND '$(CefSharpAnyCpuSupport)' != 'true')">
     <Error Text="$(MSBuildThisFileName) will work out of the box if you specify platform (x86 / x64). For AnyCPU Support see https://github.com/cefsharp/CefSharp/issues/1714" />
   </Target>
-
   <PropertyGroup>
     <CefSharpTargetDir Condition=" '$(CefSharpTargetDir)' == '' ">$(TargetDir)bin\CefSharp</CefSharpTargetDir>
   </PropertyGroup>
-
   <Target Name="CefSharpCopyLibs64" BeforeTargets="AfterBuild" Condition="'$(Platform)' == 'x64'">
   	<ItemGroup>
     <CefSharpBinaries Include="..\packages\CefSharp.Common.53.0.0\CefSharp\x64\*.*" />
+    <CefBinaries64 Include="..\packages\cef.redist.x64.3.2785.1482\CEF\x64\*.*" />
+    <CefPakFiles64 Include="..\packages\cef.redist.x64.3.2785.1482\CEF\*.*" />
+    <CefLocales64 Include="..\packages\cef.redist.x64.3.2785.1482\CEF\locales\*.*" />
   	</ItemGroup>
     <Message Importance="high" Text="Copying cef.redist x64 binaries" />
     <Copy SourceFiles="@(CefBinaries64)" DestinationFolder="$(CefSharpTargetDir)" SkipUnchangedFiles="true" />
@@ -20,5 +21,12 @@
     <Copy SourceFiles="@(CefLocales64)" DestinationFolder="$(CefSharpTargetDir)\locales" SkipUnchangedFiles="true" />
     <Message Importance="high" Text="-- CefSharp.Common.targets: Copying files from @(CefSharpBinaries) to $(CefSharpTargetDir)" />
     <Copy SourceFiles="@(CefSharpBinaries)" DestinationFolder="$(CefSharpTargetDir)" SkipUnchangedFiles="true" />
+  </Target>
+  <Target Name="CefSharpCopyOffScreenLibs64" BeforeTargets="AfterBuild" Condition="'$(Platform)' == 'x64'">
+    <ItemGroup>
+      <CefSharpBinaries64 Include="..\packages\CefSharp.OffScreen.53.0.0\CefSharp\x64\*.*" />
+    </ItemGroup>
+    <Message Importance="high" Text="-- CefSharp.OffScreen.targets: Copying files from @(CefSharpBinaries64) to $(CefSharpTargetDir)" />
+    <Copy SourceFiles="@(CefSharpBinaries64)" DestinationFolder="$(CefSharpTargetDir)" SkipUnchangedFiles="true" />
   </Target>
 </Project>

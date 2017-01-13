@@ -35,7 +35,7 @@ namespace OverWatcher.Common.CefSharpBase
             {
                 var settings = new CefSettings();
                 settings.IgnoreCertificateErrors = true; //bug fix: theice.com SSL Certificate expired
-                settings.BrowserSubprocessPath = "bin/CefSharp/CefSharp.BrowserSubprocess.exe";
+                settings.BrowserSubprocessPath = "./bin/CefSharp/CefSharp.BrowserSubprocess.exe";
                 settings.LogFile = "./log/cefLog.log";
                 Cef.Initialize(settings);
 
@@ -111,6 +111,13 @@ namespace OverWatcher.Common.CefSharpBase
             return response.Headers.Get("Set-Cookie"); ;
         }
 
+        protected async Task<bool> IsPageLoading(ChromiumWebBrowser wb, LoadingStateChangedEventArgs e)
+        {
+            if (e.IsLoading) return true;
+            var html = await wb.GetSourceAsync();
+            if (html == "<html><head></head><body></body></html>") return true;
+            return false;
+        }
         protected void WriteCookiesToDisk(string file, string cookieJar)
         {
             if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
@@ -148,18 +155,24 @@ namespace OverWatcher.Common.CefSharpBase
             }
         }
 
-        protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, int temp)
+        protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            var screenshotPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-        string.Format("CefSharp screenshot{0}.png", temp));
-
-            Console.WriteLine();
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", screenshotPath));
+            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "aaa.png";
+            path = System.IO.Path.
+                GetDirectoryName(System.Reflection
+                                        .Assembly
+                                        .GetExecutingAssembly()
+                                        .Location)
+                                        + path
+                                        .Substring(1)
+                                        .Replace('/', '\\')
+                                        .Replace(':', '-');
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
-            task.Save(screenshotPath);
+            task.Save(path1);
 
             // We no longer need the Bitmap.
             // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
@@ -167,9 +180,15 @@ namespace OverWatcher.Common.CefSharpBase
 #if DEBUG
             // Tell Windows to launch the saved image.
             Logger.Info("Screenshot saved.  Launching your default image viewer...");
-            System.Diagnostics.Process.Start(screenshotPath);
+            System.Diagnostics.Process.Start(path1);
 #endif
             return Task.FromResult<object>(null);
+        }
+
+        protected Task<JavascriptResponse> EvaluateXPathScriptAsync(ChromiumWebBrowser wb, string xpath, string action)
+        {
+            return wb.EvaluateScriptAsync(
+                string.Format("document.evaluate(\"{0}\", document, null, XPathResult.ANY_TYPE, null ).iterateNext(){1}", xpath, action));
         }
 
         protected class DownloadHandler : IDownloadHandler

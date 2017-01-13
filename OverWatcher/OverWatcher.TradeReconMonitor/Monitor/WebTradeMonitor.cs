@@ -169,9 +169,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private async void AnalyzePage(object s, LoadingStateChangedEventArgs e)
         {
             var wb = s as ChromiumWebBrowser;
-            if (e.IsLoading) return;
-            var html = await wb.GetSourceAsync();
-            if (html == "<html><head></head><body></body></html>") return;
+            if (await IsPageLoading(wb, e)) return;
             Logger.Info("Analyzing Reports");
             DateTime now = DateTimeHelper.ZoneNow();
             var scriptTask = await wb.EvaluateScriptAsync(
@@ -214,7 +212,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 Swap += int.Parse(f.Substring(1, f.Length - 2));
                 if(ConfigurationManager.AppSettings["EnableSaveWebpageScreenShot"] == "true")
                 {
-                    await SavePageScreenShot(wb, temp);
+                    await SavePageScreenShot(wb, ConfigurationManager.AppSettings["TempFolderPath"] + "WebPageScreenShot.png");
                 }
                 wb.LoadingStateChanged -= AnalyzePage;
                 await wb.EvaluateScriptAsync(

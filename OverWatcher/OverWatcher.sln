@@ -29,6 +29,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.CefSharp
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{14034066-d2eb-4027-8713-e395cad159ac}*SharedItemsImports = 4
 		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6}*SharedItemsImports = 4
 		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{89a6f9cc-d540-424c-a303-3a69e014c289}*SharedItemsImports = 13
 	EndGlobalSection

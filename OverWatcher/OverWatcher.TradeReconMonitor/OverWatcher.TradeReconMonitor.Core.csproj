@@ -199,9 +199,6 @@
       <Name>OverWatcher.Common.TaskScheduler</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="icon.ico" />
-  </ItemGroup>
   <ItemGroup />
   <Import Project="..\OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
