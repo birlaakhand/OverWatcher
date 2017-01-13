@@ -21,6 +21,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "OverWatcher.Common.Interfac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.TradeReconMonitor.CoreTests", "OverWatcher.TradeReconMonitor.CoreTests\OverWatcher.TradeReconMonitor.CoreTests.csproj", "{4B4FB5FD-F80E-4D81-9E35-D1C98030C2FE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OverWatcher.UI", "OverWatcher.UI", "{F4754C70-8B11-4A1C-8A95-8BE48112D97B}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{29497d8a-3d51-4b75-b1ef-6f9dc81f8fb6}*SharedItemsImports = 4
