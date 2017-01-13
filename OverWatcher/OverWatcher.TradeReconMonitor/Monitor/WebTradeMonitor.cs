@@ -12,14 +12,15 @@ using System.Text;
 using System.Data;
 using OverWatcher.Common.Logging;
 using OverWatcher.Common;
+using OverWatcher.Common.Interface;
+using OverWatcher.Common.CefSharpBase;
+
 namespace OverWatcher.TradeReconMonitor.Core
 {
     public enum ProductType { Swap, Futures };
     public enum CompanyName { CBNA, CGML };
-    class WebTradeMonitor :TradeMonitorBase
+    class WebTradeMonitor : WebControllerBase,ITradeMonitor
     {
-        private bool isError = false;
-        private string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
         private Dictionary<string, string> _nameMap = new Dictionary<string, string>
@@ -27,54 +28,25 @@ namespace OverWatcher.TradeReconMonitor.Core
             { "Citibank, N.A", "CBNA" },
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
         };
-        public static void InitializeEnvironment()
-        {
-            if (!Cef.IsInitialized)
-            {
-                var settings = new CefSettings();
-                settings.IgnoreCertificateErrors = true; //bug fix: theice.com SSL Certificate expired
-                settings.BrowserSubprocessPath = "bin/CefSharp/CefSharp.BrowserSubprocess.exe";
-                settings.LogFile = "./log/cefLog.log";
-                Cef.Initialize(settings);
 
+        public WebTradeMonitor() : base(ConfigurationManager.AppSettings["TempFolderPath"])
+        {
+            BrowserList.Add(AnalyzeWebsite);
+        }
+
+        public int Futures { get; private set; }
+
+        public int Swap { get; private set; }
+
+        public string MonitorTitle
+        {
+            get
+            {
+                return "ICETrade";
             }
         }
-        public static void CleanupEnvironment()
-        {
-            Cef.Shutdown();
-        }
-
-        public WebTradeMonitor() : base("ICETrade")
-        {
-
-        }
-        #region Thread Share Fields
-        internal volatile bool isDownloadCompleted = false;
-        internal volatile string DownloadFileName = "";
-        private AutoResetEvent _pageAnalyzeFinished = new AutoResetEvent(false);
-        #endregion
-        public void run()
-        {
-            var thread = new Thread(AnalyzeWebsite);
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-            if (isError) throw new MonitorException("WebMonitor Fails");
-        }
         #region Login
-        private CefSharp.Cookie ConvertCookie(System.Net.Cookie cookie)
-        {
-            var c = new CefSharp.Cookie();
-            c.Creation = cookie.TimeStamp;
-            c.Domain = cookie.Domain;
-            c.Expires = cookie.Expires;
-            c.HttpOnly = cookie.HttpOnly;
-            c.Name = cookie.Name;
-            c.Path = cookie.Path;
-            c.Secure = cookie.Secure;
-            c.Value = cookie.Value;
-            return c;
-        }
+
         private void BuildPostLoad(out string post, string otp)
         {
             post =
@@ -83,39 +55,6 @@ namespace OverWatcher.TradeReconMonitor.Core
                         + "\",\"appKey\":\"reports\",\"otpCode\":\" " + (otp ?? String.Empty) + "\"}";
         }
 
-        private HttpWebResponse MakeHttpRequest(string url, byte[] encodedPost, CookieContainer container)
-        {
-            HttpWebRequest request = HttpWebRequest.Create(url) as HttpWebRequest;
-            Stream dataStream;
-
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            if (encodedPost != null)
-            {
-                request.ContentLength = encodedPost.Length;
-                dataStream = request.GetRequestStream();
-                dataStream.Write(encodedPost, 0, encodedPost.Length);
-                dataStream.Close();
-            }
-
-            if (container != null)
-            {
-                request.CookieContainer = container;
-            }
-
-            HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-            return response;
-        }
-
-        private string GetResponseString(HttpWebResponse response)
-        {
-            var dataStream = response.GetResponseStream();
-            StreamReader reader = new StreamReader(dataStream);
-            string responseString = reader.ReadToEnd();
-            dataStream.Close();
-            response.Close();
-            return responseString;
-        }
 
         private string Urlpostfix()
         {
@@ -163,7 +102,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 {
                     Logger.Info("OTP Expired, Get OTP from Outlook");
                     string otp = "";
-                    using (EmailHandler email = new EmailHandler())
+                    using (EmailController email = new EmailController())
                     {
                         otp = email.GetOTP(requestTime).ToString();
                     }
@@ -196,48 +135,6 @@ namespace OverWatcher.TradeReconMonitor.Core
                 throw new MonitorException("Request SSO Cookie Failed", ex);
             }
 
-        }
-
-        private string GetCookieHeader(HttpWebResponse response)
-        {
-            return response.Headers.Get("Set-Cookie"); ;
-        }
-
-        public void WriteCookiesToDisk(string file, string cookieJar)
-        {
-            if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
-            try
-            {
-                Logger.Info("Writing cookies to disk... ");
-                if (!File.Exists(file))
-                {
-                    File.WriteAllText(file, cookieJar);
-                }
-                Logger.Info("Done.");
-            }
-            catch (Exception e)
-            {
-                Logger.Warn("Problem writing cookies to disk: " + e.GetType());
-            }
-        }
-
-        public string ReadCookiesFromDisk(string file)
-        {
-            if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
-            if (!File.Exists(file))
-            {
-                Logger.Info("SSO Cookie does not exist, ask for OTP");
-                return null;
-            }
-            try
-            {
-                return System.IO.File.ReadAllLines(file)[0];
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Problem reading cookies from disk: ");
-                return null;
-            }
         }
         #endregion
         #region Page Analyzer
@@ -334,43 +231,21 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         private void RenameExcel(string name)
         {
-            var excelFiles = Directory.GetFiles(ConfigurationManager.AppSettings["TempFolderPath"], "*"
+            var excelFiles = Directory.GetFiles(TempFolderPath, "*"
                 + ConfigurationManager.AppSettings["DownloadedFileType"])
                                      .Select(Path.GetFileName);
             foreach (var file in excelFiles)
             {
                 if (file != DownloadFileName) continue;
-                System.IO.File.Move(ConfigurationManager.AppSettings["TempFolderPath"] + file,
-                    ConfigurationManager.AppSettings["TempFolderPath"] +
+                System.IO.File.Move(TempFolderPath + file,
+                    TempFolderPath +
                     Path.GetFileNameWithoutExtension(file) + "_" + name
                      + Path.GetExtension(file));
             }
 
         }
         #endregion
-        private async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, int temp)
-        {
-            var task = await wb.ScreenshotAsync();
-            var screenshotPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-        string.Format("CefSharp screenshot{0}.png", temp));
 
-            Console.WriteLine();
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", screenshotPath));
-
-            // Save the Bitmap to the path.
-            // The image type is auto-detected via the ".png" extension.
-            task.Save(screenshotPath);
-
-            // We no longer need the Bitmap.
-            // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
-            task.Dispose();
-#if DEBUG
-            // Tell Windows to launch the saved image.
-            Logger.Info("Screenshot saved.  Launching your default image viewer...");
-            System.Diagnostics.Process.Start(screenshotPath);
-#endif
-            return Task.FromResult<object>(null);
-        }
 
         private void OutputTo(string futures, string cleared)
         {
@@ -396,34 +271,18 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             return FormatCount(this.Futures.ToString(), this.Swap.ToString());
         }
-        private class DownloadHandler : IDownloadHandler
+
+        public string CountToHTML()
         {
-            WebTradeMonitor drm;
-            void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
-            {
-                if (!callback.IsDisposed)
-                {
-                    using (callback)
-                    {
-                        drm.DownloadFileName = downloadItem.SuggestedFileName;
-                        callback.Continue(ConfigurationManager.AppSettings["TempFolderPath"] +
-                                            downloadItem.SuggestedFileName, showDialog: false);
-                    }
-                }
-            }
 
-            void IDownloadHandler.OnDownloadUpdated(IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback)
-            {
-                if (downloadItem.IsComplete)
-                {
-                    drm.isDownloadCompleted = true;
-                }
-            }
+            return HTMLGenerator.CountToHTML(MonitorTitle, Swap, Futures);
+        }
 
-            public DownloadHandler(WebTradeMonitor drm)
-            {
-                this.drm = drm;
-            }
+        public void LogCount()
+        {
+            Logger.Info(MonitorTitle + " Future count:" + Futures
+                                + "   "
+                                + "Cleared count:" + Swap);
         }
     }
 

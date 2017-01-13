@@ -9,10 +9,9 @@ using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Scheduler;
 using System.Threading;
 using OverWatcher.Common.Logging;
-using OverWatcher.Common.Interface;
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class Program : MainBase
+    class Program
     {
         private static bool EnableComparison;
         private static bool EnableSaveLocal;
@@ -93,7 +92,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 p.LogCount();
                 if (IsICESilent == true && p.Futures + p.Swap > 0)
                 {
-                    using (EmailHandler email = new EmailHandler())
+                    using (EmailController email = new EmailController())
                     {
                         email.SendResultEmail(p.CountToHTML(),
                             "First record of trade for today", null);
@@ -101,7 +100,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     IsICESilent = false;
                 }
                 if (p.Futures + p.Swap == 0) IsICESilent = true;
-                using (ExcelParser parser = new ExcelParser())
+                using (ExcelController parser = new ExcelController())
                 {
 
                     if (!EnableComparison)
@@ -117,7 +116,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         else
                         {
                             Logger.Info("Add Count Result To Email...");
-                            using (EmailHandler email = new EmailHandler())
+                            using (EmailController email = new EmailController())
                             {
                                 email.SendResultEmail(p.CountToHTML(), "", null);
                             }
@@ -135,7 +134,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         var DBResult = db.QueryDB();
                         db.LogCount();
                         var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
-                        diff.ForEach(d => ExcelParser.DataTableCorrectDate(ref d, "Trade Date"));
+                        diff.ForEach(d => ExcelController.DataTableCorrectDate(ref d, "Trade Date"));
                         if (diff.All(d => d.Rows.Count == 0))
                         {
                             Logger.Info("Reconsiliation Matches, No Alert Send");
@@ -144,7 +143,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         {
                             //to-do
                             Logger.Info("Email Enabled...");
-                            using (EmailHandler email = new EmailHandler())
+                            using (EmailController email = new EmailController())
                             {
                                 Logger.Info("Add Count Result To Email...");
                                 Logger.Info("Add Comparison Result To Email...");

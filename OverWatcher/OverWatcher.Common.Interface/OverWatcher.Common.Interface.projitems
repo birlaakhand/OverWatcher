@@ -9,6 +9,6 @@
     <Import_RootNamespace>OverWatcher.Common.Interface</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)MainBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)COMInterfaceBase.cs" />
   </ItemGroup>
 </Project>
