@@ -17,6 +17,12 @@ namespace OverWatcher.TradeReconMonitor.Core
         private static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
         private static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
         private OracleConnection connection = null;
+
+        ~DBConnector()
+        {
+            Dispose();
+        }
+
         public DBConnector()
         {
             connection = BuildConnection();

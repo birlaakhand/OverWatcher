@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OverWatcher.TradeReconMonitor.Core
+namespace OverWatcher.Common.Interface
 {
     internal abstract class COMInterfaceBase : IDisposable
     {
@@ -19,6 +19,11 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             COMList = new List<Tuple<dynamic, Type>>();
             closableCOMList = new List<Type>();
+        }
+
+        ~COMInterfaceBase()
+        {
+            Dispose(false);
         }
         protected virtual T GetCOM<T>(T com)
         {
@@ -39,18 +44,28 @@ namespace OverWatcher.TradeReconMonitor.Core
             }
             COMList.ForEach(com =>
             {
-                if (closableCOMList.Any(t => t == com.Item2))
+                if (com != null)
                 {
-                    com.Item1.Close();
+                    if (closableCOMList.Any(t => t == com.Item2))
+                    {
+                        com.Item1.Close();
+                    }
+                    re(com.Item1);
                 }
-                re(com.Item1);
             });
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
 
-        public abstract void Dispose();
+        protected abstract void Dispose(bool disposing);
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
 
         #endregion
     }

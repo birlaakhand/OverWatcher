@@ -7,10 +7,11 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using OverWatcher.Common.Logging;
 using System.Diagnostics;
+using OverWatcher.Common.Interface;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class EmailHandler : COMInterfaceBase
+    class EmailController : COMInterfaceBase
     {
         private Application outlook;
         private _NameSpace ns = null;
@@ -20,7 +21,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private delegate void WaitForNewMailDelegate(object item);
         private bool isUsingOpenedOutlook = false;
         #endregion
-        public EmailHandler()
+        public EmailController()
         {
             OpenOutlook();
             ns = GetCOM<_NameSpace>(outlook.GetNamespace("MAPI"));
@@ -129,51 +130,41 @@ namespace OverWatcher.TradeReconMonitor.Core
         #region IDisposable Support
         private bool disposedValue = false; // To detect redundant calls
 
-        protected virtual void Dispose(bool disposing)
+        protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
             {
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    if(isUsingOpenedOutlook)
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                if (isUsingOpenedOutlook)
+                {
+                    CloseCOM(COMCloseType.DecrementRefCount);
+                    if (outlook != null)
                     {
-                        CloseCOM(COMCloseType.DecrementRefCount);
                         Marshal.ReleaseComObject(outlook);
-                        outlook = null;
                     }
-                    else
+                    outlook = null;
+                }
+                else
+                {
+                    CloseCOM(COMCloseType.Exit);
+                    if(outlook != null)
                     {
-                        CloseCOM(COMCloseType.Exit);
                         outlook.Quit();
                         Marshal.FinalReleaseComObject(outlook);
                         outlook = null;
                     }
-
-                    GC.Collect();
-                    GC.WaitForPendingFinalizers();
                 }
 
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
 
                 disposedValue = true;
             }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~EmailHandler() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public override void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
         }
         /// <summary>
         /// Setup the COM type to be call Close()

@@ -7,9 +7,19 @@ using OverWatcher.Common.Logging;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class OracleDBMonitor : TradeMonitorBase
+    class OracleDBMonitor : ITradeMonitor
     {
-        public OracleDBMonitor() : base("OpenLinkTrade") { }
+        public int Futures { get; private set; }
+
+        public int Swap { get; private set; }
+
+        public string MonitorTitle
+        {
+            get
+            {
+                return "OpenLinkTrade";
+            }
+        }
         public List<DataTable> QueryDB()
         {
             Logger.Info("Query the Oracle Database..");
@@ -34,6 +44,19 @@ namespace OverWatcher.TradeReconMonitor.Core
                 }
             }
             return dtList;
+        }
+
+        public string CountToHTML()
+        {
+
+            return HTMLGenerator.CountToHTML(MonitorTitle, Swap, Futures);
+        }
+
+        public void LogCount()
+        {
+            Logger.Info(MonitorTitle + " Future count:" + Futures
+                                + "   "
+                                + "Cleared count:" + Swap);
         }
     }
 }
