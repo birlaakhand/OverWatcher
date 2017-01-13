@@ -21,26 +21,13 @@ namespace OverWatcher.TradeReconMonitor.Core.Tests
             var ice = HelperFunctions.CSVToDataTable("Testcase/CBNAFutures_ICE.csv");
             var opl = HelperFunctions.CSVToDataTable("Testcase/CBNAFutures_DB.csv");
             comparator.SwapLegIDAndDealID(ice);
-            HelperFunctions.SortDataTable<int>(ice, "Deal ID", SortDirection.ASC);
-            HelperFunctions.SortDataTable<int>(opl, "ICEDEALID", SortDirection.ASC);
+            HelperFunctions.SortDataTable<int>(ref ice, "Deal ID", SortDirection.ASC);
+            HelperFunctions.SortDataTable<int>(ref opl, "ICEDEALID", SortDirection.ASC);
             HelperFunctions.SaveDataTableToCSV(ice, "aaa");
             HelperFunctions.SaveDataTableToCSV(opl, "aaa");
             DataTable diff = comparator.Diff(ice, opl);
             HelperFunctions.SaveDataTableToCSV(diff, "sdsdsdsds");
             Assert.IsTrue(true);
-        }
-
-        [TestMethod()]
-        public void DataTableTest()
-        {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("a");
-            DataRow dr = dt.NewRow();
-            dr["a"] = "aa";
-            dt.Rows.Add(dr);
-            DataTable cd = dt;
-            dt.Rows.RemoveAt(0);
-            Assert.IsTrue(object.ReferenceEquals(cd, dt));
         }
     }
 #endif
