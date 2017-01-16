@@ -34,9 +34,13 @@ namespace OverWatcher.Common
         {
             return TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(dt), SpecifiedTimeZone);
         }
-        public static DateTime ZoneNow()
+        public static DateTime ZoneNow
         {
-            return TimeZoneInfo.ConvertTimeFromUtc(System.DateTime.UtcNow, SpecifiedTimeZone);
+            get
+            {
+                return TimeZoneInfo.ConvertTimeFromUtc(System.DateTime.UtcNow, SpecifiedTimeZone);
+            }
+            
         }
     }
 }

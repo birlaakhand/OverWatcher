@@ -42,7 +42,7 @@ namespace OverWatcher.Common.Scheduler
                 this.skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
                 CalculateSkip(skipValue);
                 this.frequencyValue = ParseAmbiguousDateString(frequencyValue);
-                NextRun = DateTimeHelper.ZoneNow();
+                NextRun = DateTimeHelper.ZoneNow;
             }
             catch(Exception ex)
             {
@@ -72,13 +72,22 @@ namespace OverWatcher.Common.Scheduler
             }
 
         }
+
         private void CalculateNextTime()
         {
             if (freq == Frequency.REPEATLY)
             {
                 NextRun = NextRun.AddMilliseconds(frequencyValue.Subtract(DateTime.MinValue).TotalMilliseconds);
             }
+            while(isSkip(NextRun))
+            {
+                if (this.skip == Skip.DAYOFWEEK)
+                {
+                    NextRun = NextRun.AddDays(1);
+                }
+            }
         }
+
         private DateTime ParseAmbiguousDateString(string date)
         {
             try

@@ -65,6 +65,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OverWatcher.Common.DateTimeHelper\OverWatcher.Common.DateTimeHelper.csproj">
+      <Project>{33681D3B-B609-48F6-A365-D4D89B7558CE}</Project>
+      <Name>OverWatcher.Common.DateTimeHelper</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OverWatcher.Common.HelperFuntions\OverWatcher.Common.HelperFuntions.csproj">
       <Project>{a86a85fd-9d70-4516-9bda-91e8188fdb96}</Project>
       <Name>OverWatcher.Common.HelperFuntions</Name>

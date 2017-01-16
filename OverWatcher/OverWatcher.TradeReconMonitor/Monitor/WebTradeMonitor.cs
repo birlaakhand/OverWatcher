@@ -171,7 +171,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             var wb = s as ChromiumWebBrowser;
             if (await IsPageLoading(wb, e)) return;
             Logger.Info("Analyzing Reports");
-            DateTime now = DateTimeHelper.ZoneNow();
+            DateTime now = DateTimeHelper.ZoneNow;
             var scriptTask = await wb.EvaluateScriptAsync(
                 "document.getElementById('tradeBeginDate').value = '"
                  + now.ToString("dd-MMM-yyyy") + "'");

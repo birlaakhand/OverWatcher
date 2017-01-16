@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OverWatcher.Common.HelperFunctions;
 using System.Data;
+using OverWatcher.Common;
 
 namespace OverWatcher.TradeReconMonitor.Core.Tests
 {
@@ -29,6 +30,15 @@ namespace OverWatcher.TradeReconMonitor.Core.Tests
             HelperFunctions.SaveDataTableToCSV(diff, "sdsdsdsds");
             Assert.IsTrue(true);
         }
-    }
+        [TestMethod()]
+        public void SchedulerTest()
+        {
+            DateTime dt;
+            DateTime.TryParse("2017-01-16 23:55:00",  out dt);
+            dt = dt.AddMilliseconds(15 * 60 * 1000);
+            int i = 0;
+        }
+    
+}
 #endif
 }
