@@ -40,7 +40,7 @@ namespace OverWatcher.ReportGenerationMonitor
         {
             var wb = s as ChromiumWebBrowser;
             if (await IsPageLoading(wb, e)) return;
-            DateTime now = DateTimeHelper.ZoneNow();
+            DateTime now = DateTimeHelper.ZoneNow;
             string today = now.AddDays(-2).ToString("MMMM d, yyyy", new CultureInfo("en-US"));
             Logger.Info("Webpage Loaded, Start Analyzing");
             JavascriptResponse scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");        
