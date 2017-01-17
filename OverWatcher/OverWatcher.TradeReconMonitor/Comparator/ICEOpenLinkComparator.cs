@@ -36,8 +36,8 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public DataTable Diff(DataTable ice, DataTable oracle) //sort and diff
         {
-            HelperFunctions.SortDataTable<int>(ref ice, "Deal ID", SortDirection.ASC);
-            HelperFunctions.SortDataTable<int>(ref oracle, "ICEDEALID", SortDirection.ASC);
+            HelperFunctions.SortDataTable<int>(ice, "Deal ID", SortDirection.ASC);
+            HelperFunctions.SortDataTable<int>(oracle, "ICEDEALID", SortDirection.ASC);
             DataTable diff = ice.Clone();
             diff.TableName = diff.TableName + " OpenLink Missing";
             int oracleRowsCount = oracle.Rows.Count;
