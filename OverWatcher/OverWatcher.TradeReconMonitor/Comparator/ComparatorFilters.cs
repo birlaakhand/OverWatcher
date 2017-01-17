@@ -26,8 +26,6 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             foreach (CompanyName c in Enum.GetValues(typeof(CompanyName)))
             {
-                int swapIndex = -1;
-                int futureIndex = -1;
                 DataTable swap = null;
                 DataTable future = null;
                 for(int i = 0; i < diff.Count; i++)
@@ -36,13 +34,11 @@ namespace OverWatcher.TradeReconMonitor.Core
                        diff[i].TableName.Contains(ProductType.Swap.ToString()))
                     {
                         swap = diff[i];
-                        swapIndex = i;
                     }
                     if (diff[i].TableName.Contains(c.ToString()) &&
                         diff[i].TableName.Contains(ProductType.Futures.ToString()))
                     {
                         future = diff[i];
-                        futureIndex = i;
                     }
                 }
                 if (swap == null || future == null) return;
@@ -62,9 +58,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                             future.Rows[count]["Product"].ToString().Contains(swap.Rows[count]["Product"].ToString()))
                     {
                         swap.Rows.Remove(swap.Rows[count]);
-                        diff[swapIndex] = swap;
                         future.Rows.Remove(future.Rows[count]);
-                        diff[futureIndex] = future;
                     }
                     ++count;
                 }

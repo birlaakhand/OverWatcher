@@ -101,7 +101,7 @@ namespace OverWatcher.ReportGenerationMonitor
                 {
                     using (EmailNotifier email = new EmailNotifier())
                     {
-                        //email.SendResultEmail("B-Brent Crude Future Report Generated At " + time, "", new List<string> { path });
+                        email.SendResultEmail("B-Brent Crude Future Report Generated At " + time, "", new List<string> { path });
                     }
                 }
             }
