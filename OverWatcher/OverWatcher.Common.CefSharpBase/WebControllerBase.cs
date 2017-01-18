@@ -159,16 +159,7 @@ namespace OverWatcher.Common.CefSharpBase
         {
             var task = await wb.ScreenshotAsync();
             string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "aaa.png";
-            path = System.IO.Path.
-                GetDirectoryName(System.Reflection
-                                        .Assembly
-                                        .GetExecutingAssembly()
-                                        .Location)
-                                        + path
-                                        .Substring(1)
-                                        .Replace('/', '\\')
-                                        .Replace(':', '-');
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path1));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.

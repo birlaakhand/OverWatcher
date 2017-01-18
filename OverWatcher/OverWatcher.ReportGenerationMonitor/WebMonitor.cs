@@ -43,8 +43,10 @@ namespace OverWatcher.ReportGenerationMonitor
             DateTime now = DateTimeHelper.ZoneNow;
             string today = now.AddDays(-2).ToString("MMMM d, yyyy", new CultureInfo("en-US"));
             Logger.Info("Webpage Loaded, Start Analyzing");
-            JavascriptResponse scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");        
-            if (scriptTask.Result.ToString() == "I Accept")
+            await SavePageScreenShot(wb, "");
+            JavascriptResponse scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");    
+                
+            if (scriptTask.Result != null && scriptTask.Result.ToString() == "I Accept")
             {
                 scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".click()");
             }
@@ -87,7 +89,7 @@ namespace OverWatcher.ReportGenerationMonitor
                 scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr/td", ".innerHTML");
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() == string.Empty);
-
+            scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
             scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", today), ".innerHTML");
             if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(today))
             {

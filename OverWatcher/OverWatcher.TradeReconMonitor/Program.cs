@@ -17,7 +17,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private static bool EnableSaveLocal;
         private static bool EnableEmail;
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        private static bool IsICESilent = false;
+        private static volatile bool IsICESilent = true;
         public static void Main(string[] args)
         {
             Console.Title = "OverWatcher.TradeReconMonitor - Enter 'q' to Quit The Program";
@@ -92,14 +92,19 @@ namespace OverWatcher.TradeReconMonitor.Core
                 p.LogCount();
                 if (IsICESilent == true && p.Futures + p.Swap > 0)
                 {
+                    Logger.Info("Sending First Record of Trade for today...");
                     using (EmailController email = new EmailController())
                     {
                         email.SendResultEmail(p.CountToHTML(),
-                            "First record of trade for today", null);
+                            "First record of trade for today Appears", null);
                     }
                     IsICESilent = false;
                 }
-                if (p.Futures + p.Swap == 0) IsICESilent = true;
+                if (p.Futures + p.Swap == 0)
+                {
+                    IsICESilent = true;
+                    Logger.Info("Next Business Day, the ICE Trade has been Reset");
+                }
                 using (ExcelController parser = new ExcelController())
                 {
 
