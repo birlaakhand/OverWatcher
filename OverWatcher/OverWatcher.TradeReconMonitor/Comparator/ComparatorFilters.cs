@@ -32,23 +32,49 @@ namespace OverWatcher.TradeReconMonitor.Core
                 if (swap == null || future == null) return;
                 HelperFunctions.SortDataTable<int>(swap, "Deal ID", SortDirection.ASC);
                 HelperFunctions.SortDataTable<int>(future, "Deal ID", SortDirection.ASC);
-                int count = 0;
-                LinkedList<KeyValuePair<int, int>> filtered = new LinkedList<KeyValuePair<int, int>>();
-                while (count < swap.Rows.Count && count < future.Rows.Count)
+                int swapCount = 0;
+                int futureCount = 0;
+                LinkedList<DataRow> swapRemoveList = new LinkedList<DataRow>();
+                LinkedList<DataRow> futureRemoveList = new LinkedList<DataRow>();
+                while (swapCount < swap.Rows.Count && futureCount < future.Rows.Count)
                 {
-                    if (swap.Rows[count]["Deal ID"] == future.Rows[count]["Deal ID"] &&
-                        swap.Rows[count]["B/S"] != future.Rows[count]["B/S"] &&                     
-                        swap.Rows[count]["Contract"] == future.Rows[count]["Contract"] &&
-                        swap.Rows[count]["Lots"] == future.Rows[count]["Lots"] &&
-                        swap.Rows[count]["Trader"] == future.Rows[count]["Trader"] &&
-                        swap.Rows[count]["Product"].ToString().Length > future.Rows[count]["Product"].ToString().Length ?
-                            swap.Rows[count]["Product"].ToString().Contains(future.Rows[count]["Product"].ToString()) :
-                            future.Rows[count]["Product"].ToString().Contains(swap.Rows[count]["Product"].ToString()))
+                    int swapID = 0;
+                    int futureID = 0;
+                    int.TryParse(swap.Rows[swapCount]["Deal ID"].ToString(), out swapID);
+                    int.TryParse(future.Rows[futureCount]["Deal ID"].ToString(), out futureID);
+                    if (swapID != futureID)
                     {
-                       swap.Rows.Remove(swap.Rows[count]);
-                        future.Rows.Remove(future.Rows[count]);
+                        if (swapID > futureID)
+                        {
+                            ++futureCount;
+                        }
+                        else
+                        {
+                            ++swapCount;
+                        }
+                        continue;
                     }
-                    ++count;
+                    if (swap.Rows[swapCount]["B/S"] != future.Rows[futureCount]["B/S"] &&
+                        swap.Rows[swapCount]["Contract"] == future.Rows[futureCount]["Contract"] &&
+                        swap.Rows[swapCount]["Lots"] == future.Rows[futureCount]["Lots"] &&
+                        swap.Rows[swapCount]["Trader"] == future.Rows[futureCount]["Trader"] &&
+                        swap.Rows[swapCount]["Product"].ToString().Length > future.Rows[futureCount]["Product"].ToString().Length ?
+                            swap.Rows[swapCount]["Product"].ToString().Contains(future.Rows[futureCount]["Product"].ToString()) :
+                            future.Rows[futureCount]["Product"].ToString().Contains(swap.Rows[swapCount]["Product"].ToString()))
+                    {
+                        swapRemoveList.AddLast(swap.Rows[swapCount]);
+                        futureRemoveList.AddLast(future.Rows[futureCount]);
+                        ++futureCount;
+                        ++swapCount;
+                    }
+                }
+                foreach (var dataRow in swapRemoveList)
+                {
+                    swap.Rows.Remove(dataRow);
+                }
+                foreach (var dataRow in futureRemoveList)
+                {
+                    future.Rows.Remove(dataRow);
                 }
             }
 
