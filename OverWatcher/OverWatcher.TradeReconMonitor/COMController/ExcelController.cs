@@ -21,7 +21,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private readonly string[] headers = { "Cleared Deals", "Futures Deals" };
         private readonly string[] selectedCol =
             { "Trade Date", "Trade Time", "Deal ID",
-                "Leg ID", "B/S", "Product", "Contract", "Price", "Lots", "Trader" };
+                "Leg ID", "Link ID", "B/S", "Product", "Contract", "Price", "Lots", "Trader" };
         private readonly string basePath;
         private readonly string OutputPath;
         private readonly string DownloadPath;

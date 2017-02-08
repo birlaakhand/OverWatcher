@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Logging;
 
@@ -21,7 +22,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 foreach(ProductType p in Enum.GetValues(typeof(ProductType)))
                 {
-                    DataTable ice = iceList.Find(s => s.TableName == c.ToString() + p.ToString());
+                    DataTable ice = ICEResultFilter(iceList.Find(s => s.TableName == c.ToString() + p.ToString()));
                     DataTable oracle = oracleList.Find(s => s.TableName == c.ToString() + p.ToString());
                     diff.Add(SwapLegIDAndDealID(Diff(ice, oracle)));
                 }
@@ -81,6 +82,32 @@ namespace OverWatcher.TradeReconMonitor.Core
                     row["Leg ID"] = deal;
                 }
             }
+            return ice;
+        }
+
+        public DataTable ICEResultFilter(DataTable ice)
+        {
+            LinkedList<DataRow> repeated = new LinkedList<DataRow>();
+            int loop = 2; 
+            do
+            {
+                for (int i = 0; i < ice.Rows.Count; i++)
+                {
+                    if(string.IsNullOrEmpty(ice.Rows[i]["Deal ID"]?.ToString()))
+                        continue;
+                    var match = repeated.FirstOrDefault(x => ice.Rows[i]["Deal ID"].ToString() ==
+                                                 x["Link ID"].ToString());
+                    if (match != null)
+                    {
+                        ice.Rows.Remove(match);
+                        continue;
+                    }
+                    if (!string.IsNullOrEmpty(ice.Rows[i]["Link ID"]?.ToString()))
+                    {
+                        repeated.AddLast(ice.Rows[i]);
+                    }
+                }
+            } while (loop-- > 0);
             return ice;
         }
     }
