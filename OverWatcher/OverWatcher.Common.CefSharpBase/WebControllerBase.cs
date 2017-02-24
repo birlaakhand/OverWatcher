@@ -46,7 +46,7 @@ namespace OverWatcher.Common.CefSharpBase
             Cef.Shutdown();
         }
 
-        public void run()
+        public void Run()
         {
             BrowserList.Select(b =>
             {
@@ -108,7 +108,7 @@ namespace OverWatcher.Common.CefSharpBase
 
         protected string GetCookieHeader(HttpWebResponse response)
         {
-            return response.Headers.Get("Set-Cookie"); ;
+            return response.Headers.Get("Set-Cookie");
         }
 
         protected async Task<bool> IsPageLoading(ChromiumWebBrowser wb, LoadingStateChangedEventArgs e)

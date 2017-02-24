@@ -100,6 +100,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     if (match != null)
                     {
                         ice.Rows.Remove(match);
+                        repeated.Remove(match);
                         continue;
                     }
                     if (!string.IsNullOrEmpty(ice.Rows[i]["Link ID"]?.ToString()))
@@ -107,7 +108,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         repeated.AddLast(ice.Rows[i]);
                     }
                 }
-            } while (loop-- > 0);
+            } while (--loop > 0);
             return ice;
         }
     }

@@ -87,7 +87,7 @@ namespace OverWatcher.ReportGenerationMonitor
 
         public static void StartWebController()
         {
-            new WebMonitor().run();
+            new WebMonitor().Run();
         }
     }
 }

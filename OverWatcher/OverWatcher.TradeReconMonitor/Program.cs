@@ -88,7 +88,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 WebTradeMonitor p = new WebTradeMonitor();
                 Logger.Info("Clean up Temp Folder...");
                 CleanUpTempFolder();
-                p.run();
+                p.Run();
                 p.LogCount();
                 if (IsICESilent == true && p.Futures + p.Swap > 0)
                 {

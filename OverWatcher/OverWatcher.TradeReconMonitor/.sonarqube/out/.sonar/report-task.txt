@@ -1,0 +1,5 @@
+projectKey=org.sonarqube:sonarqube-scanner-msbuild
+serverUrl=http://sd-09d2-0287.nam.nsroot.net:9000/sonarqube
+dashboardUrl=http://sd-09d2-0287.nam.nsroot.net:9000/sonarqube/dashboard/index/org.sonarqube:sonarqube-scanner-msbuild
+ceTaskId=AVpk2pFfFlY2WRE35ZDK
+ceTaskUrl=http://sd-09d2-0287.nam.nsroot.net:9000/sonarqube/api/ce/task?id=AVpk2pFfFlY2WRE35ZDK

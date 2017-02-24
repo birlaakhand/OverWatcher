@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+  <ProjectName>OverWatcher.Common.Logging</ProjectName>
+  <ProjectLanguage>C#</ProjectLanguage>
+  <ProjectType>Product</ProjectType>
+  <ProjectGuid>0ce1953f-44ad-4ab3-a3db-446731e88328</ProjectGuid>
+  <FullPath>C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.Logger\OverWatcher.Common.Logging.csproj</FullPath>
+  <IsExcluded>false</IsExcluded>
+  <AnalysisResults>
+    <AnalysisResult Id="FilesToAnalyze" Location="C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.TradeReconMonitor\.sonarqube\out\\OverWatcher.Common.Logging_x64_Release_5039\FilesToAnalyze.txt" />
+  </AnalysisResults>
+  <AnalysisSettings>
+    <Property Name="sonar.cs.roslyn.reportFilePath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.Logger\bin\x64\Release\OverWatcher.Common.Logger.dll.RoslynCA.json</Property>
+    <Property Name="sonar.cs.analyzer.projectOutPath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.TradeReconMonitor\.sonarqube\out\\OverWatcher.Common.Logging_x64_Release_5039</Property>
+    <Property Name="sonar.stylecop.projectFilePath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.Logger\OverWatcher.Common.Logging.csproj</Property>
+  </AnalysisSettings>
+</ProjectInfo>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+  <ProjectName>OverWatcher.Common.DateTimeHelper</ProjectName>
+  <ProjectLanguage>C#</ProjectLanguage>
+  <ProjectType>Product</ProjectType>
+  <ProjectGuid>33681d3b-b609-48f6-a365-d4d89b7558ce</ProjectGuid>
+  <FullPath>C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.DateTimeHelper\OverWatcher.Common.DateTimeHelper.csproj</FullPath>
+  <IsExcluded>false</IsExcluded>
+  <AnalysisResults>
+    <AnalysisResult Id="FilesToAnalyze" Location="C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.TradeReconMonitor\.sonarqube\out\\OverWatcher.Common.DateTimeHelper_x64_Release_5901\FilesToAnalyze.txt" />
+  </AnalysisResults>
+  <AnalysisSettings>
+    <Property Name="sonar.cs.roslyn.reportFilePath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.DateTimeHelper\bin\x64\Release\OverWatcher.Common.DateTimeHelper.dll.RoslynCA.json</Property>
+    <Property Name="sonar.cs.analyzer.projectOutPath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.TradeReconMonitor\.sonarqube\out\\OverWatcher.Common.DateTimeHelper_x64_Release_5901</Property>
+    <Property Name="sonar.stylecop.projectFilePath">C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.Common.DateTimeHelper\OverWatcher.Common.DateTimeHelper.csproj</Property>
+  </AnalysisSettings>
+</ProjectInfo>

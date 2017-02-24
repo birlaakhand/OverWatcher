@@ -27,6 +27,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.ReportGeneratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OverWatcher.Common.CefSharpBase", "OverWatcher.Common.CefSharpBase\OverWatcher.Common.CefSharpBase.csproj", "{4F13D1C3-6EDF-47EC-BBB0-785C7DE6869C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SonarQube", "SonarQube", "{2ED7708E-14A3-49AB-86A7-2113C76EC436}"
+	ProjectSection(SolutionItems) = preProject
+		SonarQube\org.sonarqube_sonarqube-scanner-msbuildCSharp.ruleset = SonarQube\org.sonarqube_sonarqube-scanner-msbuildCSharp.ruleset
+		SonarQube\SolutionBinding.sqconfig = SonarQube\SolutionBinding.sqconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		OverWatcher.Common.Interface\OverWatcher.Common.Interface.projitems*{14034066-d2eb-4027-8713-e395cad159ac}*SharedItemsImports = 4

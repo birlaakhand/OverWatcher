@@ -1,0 +1,4 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="SonarQube - OverWatcher.TradeReconMonitor.Core Sonar way" ToolsVersion="14.0">
+  <Include Path="..\sonarqube\org.sonarqube_sonarqube-scanner-msbuildcsharp.ruleset" Action="Default" />
+</RuleSet>
