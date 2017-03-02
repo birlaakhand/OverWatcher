@@ -158,7 +158,7 @@ namespace OverWatcher.Common.CefSharpBase
         protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "aaa.png";
+            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
             Logger.Info(string.Format("Screenshot ready. Saving to {0}", path1));
 
             // Save the Bitmap to the path.

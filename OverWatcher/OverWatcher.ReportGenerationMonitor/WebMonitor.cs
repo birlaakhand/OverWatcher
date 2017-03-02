@@ -14,6 +14,19 @@ namespace OverWatcher.ReportGenerationMonitor
     class WebMonitor : WebControllerBase
     {
         private const string URL = "https://www.theice.com/marketdata/reports/10";
+        private static DateTime NextReport = DateTimeHelper.ZoneNow;
+        private static DateTime CurrentReport = DateTimeHelper.ZoneNow;
+        private static string FormatDate(DateTime now)
+        {
+            return now.ToString("MMMM d, yyyy", new CultureInfo("en-US"));
+        }
+
+        private static DateTime StringToDate(string date)
+        {
+            DateTime d = default(DateTime);
+            DateTime.TryParseExact(date, "MMMM d, yyyy", null, DateTimeStyles.AssumeLocal, out d);
+            return d;
+        }
         public WebMonitor() : base(ConfigurationManager.AppSettings["TempFolderPath"])
         {
             BrowserList.Add(AnalyzeWebsite);
@@ -40,8 +53,6 @@ namespace OverWatcher.ReportGenerationMonitor
         {
             var wb = s as ChromiumWebBrowser;
             if (await IsPageLoading(wb, e)) return;
-            DateTime now = DateTimeHelper.ZoneNow;
-            string today = now.AddDays(-2).ToString("MMMM d, yyyy", new CultureInfo("en-US"));
             Logger.Info("Webpage Loaded, Start Analyzing");
             await SavePageScreenShot(wb, "");
             JavascriptResponse scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");    
@@ -90,10 +101,11 @@ namespace OverWatcher.ReportGenerationMonitor
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() == string.Empty);
             scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
+            string today = FormatDate(NextReport);
             scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", today), ".innerHTML");
             if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(today))
             {
-                string time = now.ToString("yyyy-MM-dd_hh:mm:ss");
+                string time = NextReport.ToString("yyyy-MM-dd_hh:mm:ss");
                 string path = ConfigurationManager.AppSettings["TempFolderPath"] + string.Format("WebpageScreenshot_{0}.png", time);
                 Thread.Sleep(2000); //allow page to render, JS rendering cannot detected by code
                 Logger.Info("Report Found, Generation Time approx to " + time);
