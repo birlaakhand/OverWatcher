@@ -95,8 +95,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                 {
                     if(string.IsNullOrEmpty(ice.Rows[i]["Deal ID"]?.ToString()))
                         continue;
-                    var match = repeated.FirstOrDefault(x => ice.Rows[i]["Deal ID"].ToString() ==
-                                                 x["Link ID"].ToString());
+                    var match = repeated.Any(x => ice.Rows[i]["Deal ID"].ToString() ==
+                                                 x["Link ID"].ToString()) ? ice.Rows[i] : null;
                     if (match != null)
                     {
                         ice.Rows.Remove(match);

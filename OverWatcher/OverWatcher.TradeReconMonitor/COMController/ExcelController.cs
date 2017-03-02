@@ -195,12 +195,18 @@ namespace OverWatcher.TradeReconMonitor.Core
         #endregion
         public static void DataTableCorrectDate(ref System.Data.DataTable dt, string colName)
         {
+            
             foreach (DataRow row in dt.Rows)
             {
-                row[colName] = DateTime
-                        .FromOADate(double.Parse(row[colName]
-                        .ToString()))
-                        .ToString("dd-MM-yyyy");
+                double date = 0L;
+                if(double.TryParse(row[colName].ToString(), out date))
+                {
+                    row[colName] = DateTime
+                                        .FromOADate(date)
+                                        .ToString("dd-MM-yyyy");
+                }
+
+
             }
         }
         #region Clean Up
