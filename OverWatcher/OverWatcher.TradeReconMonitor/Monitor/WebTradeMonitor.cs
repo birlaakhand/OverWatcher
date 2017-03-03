@@ -29,10 +29,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
         };
 
-        public WebTradeMonitor() : base(ConfigurationManager.AppSettings["TempFolderPath"])
-        {
-            BrowserList.Add(AnalyzeWebsite);
-        }
+        public WebTradeMonitor() : base(ConfigurationManager.AppSettings["TempFolderPath"]) { }
 
         public int Futures { get; private set; }
 
@@ -138,7 +135,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         #endregion
         #region Page Analyzer
-        private void AnalyzeWebsite()
+        protected override Task StartBrowser()
         {
             try
             {
@@ -158,13 +155,13 @@ namespace OverWatcher.TradeReconMonitor.Core
                 browser.LoadingStateChanged += AnalyzePage;
                 _pageAnalyzeFinished.WaitOne();
                 browser.Dispose();
-                System.Windows.Forms.Application.ExitThread();
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "WebMonitor Failed");
-                isError = true;
+                throw;
             }
+            return Task.FromResult<object>(null);
         }
         private async void AnalyzePage(object s, LoadingStateChangedEventArgs e)
         {

@@ -12,22 +12,20 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.Common.CefSharpBase
 {
-    public class WebControllerBase
+    public abstract class WebControllerBase
     {
         #region Thread Share Fields
-        protected volatile bool isError = false;
         protected volatile bool isDownloadCompleted = false;
         protected volatile string DownloadFileName = "";
         protected AutoResetEvent _pageAnalyzeFinished = new AutoResetEvent(false);
         protected readonly string TempFolderPath;
         protected WebControllerBase(string temp)
         {
-            BrowserList = new List<ThreadStart>();
             TempFolderPath = temp;
         }
 
         #endregion
-        protected List<ThreadStart> BrowserList;
+        protected abstract Task StartBrowser();
         protected string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         public static void InitializeEnvironment()
         {
@@ -48,14 +46,26 @@ namespace OverWatcher.Common.CefSharpBase
 
         public void Run()
         {
-            BrowserList.Select(b =>
+            RunAsync().Wait();
+        }
+
+        public Task RunAsync()
+        {
+            var tcs = new TaskCompletionSource<object>();
+            Thread thread = new Thread(() =>
             {
-                var thread = new Thread(b);
-                thread.SetApartmentState(ApartmentState.STA);
-                thread.Start();
-                return thread;
-            }).ToList().ForEach(t => t.Join());
-            if (isError) throw new CefSharpException("CefSharp Fails");
+                try
+                {
+                    tcs.SetResult(StartBrowser());
+                }
+                catch (Exception e)
+                {
+                    tcs.SetException(e);
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            return tcs.Task;
         }
 
         protected CefSharp.Cookie ConvertCookie(System.Net.Cookie cookie)
@@ -158,12 +168,11 @@ namespace OverWatcher.Common.CefSharpBase
         protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path1));
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
-            task.Save(path1);
+            task.Save(path);
 
             // We no longer need the Bitmap.
             // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
@@ -184,7 +193,7 @@ namespace OverWatcher.Common.CefSharpBase
 
         protected class DownloadHandler : IDownloadHandler
         {
-            WebControllerBase drm;
+            readonly WebControllerBase drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
                 if (!callback.IsDisposed)

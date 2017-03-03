@@ -113,6 +113,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         Logger.Info("Non Comparison Mode");
                         Logger.Info("Saving To Local...");
                         parser.SaveAsCSV();
+                        parser.Dispose();
                         if (!EnableEmail)
                         {
                             Logger.Info("Saving Count Result...");
@@ -131,6 +132,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     {
                         Logger.Info("Start Comparison...");
                         var ICEResult = parser.GetDataTableList();
+                        parser.Dispose();
                         OracleDBMonitor db = new OracleDBMonitor();
                         int queryDelay = 0;
                         int.TryParse(ConfigurationManager.AppSettings["DBQueryDelay"], out queryDelay);

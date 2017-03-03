@@ -12,6 +12,9 @@ namespace OverWatcher.ReportGenerationMonitor
     public static class Program
     {
         public const string ServiceName = "ReportGenerationMonitoringService";
+        private static readonly string[] ReportList = ConfigurationManager
+                                                .AppSettings["ReportList"]
+                                                .ToString().Split(",".ToCharArray());
         static void Main(string[] args)
         {
             if (!Environment.UserInteractive)
@@ -87,7 +90,9 @@ namespace OverWatcher.ReportGenerationMonitor
 
         public static void StartWebController()
         {
-            new WebMonitor().Run();
+            ReportList.Select(rl => new ReportMonitor(rl).RunAsync())
+                      .ToList()
+                      .ForEach(t => t.Wait());
         }
     }
 }
