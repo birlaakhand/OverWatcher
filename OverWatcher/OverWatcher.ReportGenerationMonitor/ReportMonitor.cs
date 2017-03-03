@@ -17,7 +17,7 @@ namespace OverWatcher.ReportGenerationMonitor
         public string URL = "https://www.theice.com/marketdata/reports/10";
         private DateTime NextReport = DateTimeHelper.ZoneNow.AddDays(-1);
         private DateTime CurrentReport = DateTimeHelper.ZoneNow;
-        public string ReportName = "B-Brent Crude Future";
+        public string ReportName;
         private static string FormatDate(DateTime now)
         {
             return now.ToString("MMMM d, yyyy", new CultureInfo("en-US"));
