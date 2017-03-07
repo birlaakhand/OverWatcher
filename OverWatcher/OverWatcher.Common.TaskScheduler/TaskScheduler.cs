@@ -38,8 +38,7 @@ namespace OverWatcher.Common.Scheduler
                 System.DateTime now = System.DateTime.Now;
                 if (pair.Value.isOnTime(now))
                 {
-                    Logger.Info(string.Format("Task Start",
-                                now.ToString("MM/dd/yyyy hh:mm")));
+                    Logger.Info("Task Start at " + now.ToString("MM/dd/yyyy hh:mm"));
                     pair.Key.Invoke();
                     Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
                 }

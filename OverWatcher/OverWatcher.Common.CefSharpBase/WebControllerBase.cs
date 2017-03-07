@@ -25,7 +25,6 @@ namespace OverWatcher.Common.CefSharpBase
         }
 
         #endregion
-        protected abstract Task StartBrowser();
         protected string _defaultCookiePath = ConfigurationManager.AppSettings["CookiePath"];
         public static void InitializeEnvironment()
         {
@@ -44,11 +43,7 @@ namespace OverWatcher.Common.CefSharpBase
             Cef.Shutdown();
         }
 
-        public void Run()
-        {
-            RunAsync().Wait();
-        }
-
+        protected abstract Task StartBrowser();
         public Task RunAsync()
         {
             var tcs = new TaskCompletionSource<object>();
@@ -68,6 +63,10 @@ namespace OverWatcher.Common.CefSharpBase
             return tcs.Task;
         }
 
+        public void Run()
+        {
+            RunAsync().Wait();
+        }
         protected CefSharp.Cookie ConvertCookie(System.Net.Cookie cookie)
         {
             var c = new CefSharp.Cookie();
@@ -168,11 +167,12 @@ namespace OverWatcher.Common.CefSharpBase
         protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
+            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path1));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
-            task.Save(path);
+            task.Save(path1);
 
             // We no longer need the Bitmap.
             // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
@@ -193,7 +193,7 @@ namespace OverWatcher.Common.CefSharpBase
 
         protected class DownloadHandler : IDownloadHandler
         {
-            readonly WebControllerBase drm;
+            WebControllerBase drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
                 if (!callback.IsDisposed)

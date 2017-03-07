@@ -15,9 +15,19 @@ namespace OverWatcher.ReportGenerationMonitor
     class ReportMonitor : WebControllerBase
     {
         public string URL = "https://www.theice.com/marketdata/reports/10";
-        private DateTime NextReport = DateTimeHelper.ZoneNow.AddDays(-1);
+        private DateTime ReportToBeFound = DateTimeHelper.ZoneNow.AddDays(-1);
         private DateTime CurrentReport = DateTimeHelper.ZoneNow;
         public string ReportName;
+        public string ResultTime
+        {
+            get;
+            private set;
+        }
+        public string AttachmentPath
+        {
+            get;
+            private set;
+        }
         private static string FormatDate(DateTime now)
         {
             return now.ToString("MMMM d, yyyy", new CultureInfo("en-US"));
@@ -95,29 +105,22 @@ namespace OverWatcher.ReportGenerationMonitor
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() == string.Empty);
             scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
-            string today = FormatDate(NextReport);
-            scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", today), ".innerHTML");
-            if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(today))
+            string resultToBeFound = FormatDate(ReportToBeFound);
+            scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", resultToBeFound), ".innerHTML");
+            if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(resultToBeFound))
             {
-                string time = NextReport.ToString("yyyy-MM-dd_hh-mm-ss");
-                string path = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}.png", time);
+                ResultTime = FormatDate(DateTimeHelper.ZoneNow);
+                AttachmentPath = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}_{1}.png", ResultTime, ReportName);
                 Thread.Sleep(2000); //allow page to render, JS rendering cannot detected by code
-                Logger.Info("Report Found, Generation Time approx to " + time);
+                Logger.Info(ReportName + " Report Found, Generation Time approx to " + ResultTime);
                 Logger.Info("Saving Screenshot...");
-                await SavePageScreenShot(wb, path);
-                if (Environment.UserInteractive)
-                {
-                    using (EmailNotifier email = new EmailNotifier())
-                    {
-                        email.SendResultEmail(ReportName + " Report Generated At " + time, "", new List<string> { path });
-                    }
-                }
-                CurrentReport = NextReport;
-                NextReport = NextReport.AddDays(1);
+                await SavePageScreenShot(wb, AttachmentPath);
+                CurrentReport = ReportToBeFound;
+                ReportToBeFound = ReportToBeFound.AddDays(1);
             }
             else
             {
-                Logger.Info("The Report is not Ready Yet");
+                Logger.Info(ReportName + " Report is not Ready Yet");
             }
             _pageAnalyzeFinished.Set();
         }

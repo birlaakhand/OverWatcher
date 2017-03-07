@@ -90,9 +90,22 @@ namespace OverWatcher.ReportGenerationMonitor
 
         public static void StartWebController()
         {
-            ReportList.Select(rl => new ReportMonitor(rl).RunAsync())
+            var reports = ReportList.Select(rl => new ReportMonitor(rl));
+            reports.Select(rp => rp.RunAsync())
                       .ToList()
                       .ForEach(t => t.Wait());
+            if (Environment.UserInteractive)
+            {
+                using (EmailNotifier email = new EmailNotifier())
+                {
+                    
+                    email.SendResultEmail(
+                        reports.Select(rp => rp.ReportName + " Report Generated At " + rp.ResultTime)
+                            .Aggregate((a, b) => a + Environment.NewLine + b)
+                            , ""
+                            , reports.Select(rp => rp.AttachmentPath).ToList());
+                }
+            }
         }
     }
 }

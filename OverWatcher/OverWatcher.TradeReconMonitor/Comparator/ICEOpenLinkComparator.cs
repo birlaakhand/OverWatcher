@@ -10,6 +10,15 @@ namespace OverWatcher.TradeReconMonitor.Core
 
     partial class ICEOpenLinkComparator
     {
+        DataTableFilterBase iceFilter = new ICEDataTableFilter();
+
+        public string ExcludedRecords
+        {
+            get
+            {
+                return iceFilter.CountString;
+            }
+        }
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
         {
             Logger.Info("Diff ICE and Oracle...");
@@ -22,7 +31,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 foreach(ProductType p in Enum.GetValues(typeof(ProductType)))
                 {
-                    DataTable ice = ICEResultFilter(iceList.Find(s => s.TableName == c.ToString() + p.ToString()));
+                    DataTable ice = iceFilter.Filter(iceList.Find(s => s.TableName == c.ToString() + p.ToString()));
                     DataTable oracle = oracleList.Find(s => s.TableName == c.ToString() + p.ToString());
                     diff.Add(SwapLegIDAndDealID(Diff(ice, oracle)));
                 }
@@ -85,31 +94,6 @@ namespace OverWatcher.TradeReconMonitor.Core
             return ice;
         }
 
-        public DataTable ICEResultFilter(DataTable ice)
-        {
-            LinkedList<DataRow> repeated = new LinkedList<DataRow>();
-            int loop = 2; 
-            do
-            {
-                for (int i = 0; i < ice.Rows.Count; i++)
-                {
-                    if(string.IsNullOrEmpty(ice.Rows[i]["Deal ID"]?.ToString()))
-                        continue;
-                    var match = repeated.Any(x => ice.Rows[i]["Deal ID"].ToString() ==
-                                                 x["Link ID"].ToString()) ? ice.Rows[i] : null;
-                    if (match != null)
-                    {
-                        ice.Rows.Remove(match);
-                        repeated.Remove(match);
-                        continue;
-                    }
-                    if (!string.IsNullOrEmpty(ice.Rows[i]["Link ID"]?.ToString()))
-                    {
-                        repeated.AddLast(ice.Rows[i]);
-                    }
-                }
-            } while (--loop > 0);
-            return ice;
-        }
+
     }
 }

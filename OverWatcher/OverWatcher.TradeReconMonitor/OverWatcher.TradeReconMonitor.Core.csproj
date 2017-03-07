@@ -123,9 +123,11 @@
   <ItemGroup>
     <Compile Include="COMController\EmailController.cs" />
     <Compile Include="COMController\ExcelController.cs" />
-    <Compile Include="Comparator\ComparatorFilters.cs" />
+    <Compile Include="Filter\ComparatorFilters.cs" />
     <Compile Include="Comparator\ICEOpenLinkComparator.cs" />
     <Compile Include="Database\DBConnector.cs" />
+    <Compile Include="Filter\ICEDataTableFilter.cs" />
+    <Compile Include="Filter\IDataTableFilter.cs" />
     <Compile Include="HTMLGenerator.cs" />
     <Compile Include="Monitor\Exception\MonitorException.cs" />
     <Compile Include="Monitor\OpenLinkDBMonitor.cs" />

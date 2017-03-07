@@ -140,7 +140,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                         Thread.Sleep(queryDelay * 1000);
                         var DBResult = db.QueryDB();
                         db.LogCount();
-                        var diff = new ICEOpenLinkComparator().Diff(ICEResult, DBResult);
+                        var comparator = new ICEOpenLinkComparator();
+                        var diff = comparator.Diff(ICEResult, DBResult);
                         diff.ForEach(d => ExcelController.DataTableCorrectDate(ref d, "Trade Date"));
                         if (diff.All(d => d.Rows.Count == 0))
                         {
@@ -156,7 +157,12 @@ namespace OverWatcher.TradeReconMonitor.Core
                                 Logger.Info("Add Comparison Result To Email...");
                                 var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
                                 Logger.Info("Add Comparison Result To Attachment...");
-                                email.SendResultEmail(p.CountToHTML() + db.CountToHTML() + Environment.NewLine + BuildComparisonResultBody(diff), "", attachmentPaths);
+                                email.SendResultEmail(p.CountToHTML() 
+                                    + db.CountToHTML() 
+                                    + Environment.NewLine 
+                                    + BuildComparisonResultBody(diff)
+                                    + Environment.NewLine
+                                    + comparator.ExcludedRecords, "", attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)
