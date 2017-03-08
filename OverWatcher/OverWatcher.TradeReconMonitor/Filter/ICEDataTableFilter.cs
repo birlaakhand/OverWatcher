@@ -9,12 +9,11 @@ namespace OverWatcher.TradeReconMonitor.Core
 {
     class ICEDataTableFilter : DataTableFilterBase
     {
-        public override DataTable Filter(DataTable ice)
+        public override void Filter(DataTable ice)
         {
             ICELinkIDFilter(ice);
             ICEExceptionBalmoFilter(ice);
             ICEExceptionLNGFilter(ice);
-            return ice;
         }
         public DataTable ICELinkIDFilter(DataTable ice)
         {
@@ -42,14 +41,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     }
                 }
             } while (--loop > 0);
-            if (!ExcludedCountMap.Keys.Contains("Linked Deal"))
-            {
-                ExcludedCountMap["Linked Deal"] = count;
-            }
-            else
-            {
-                ExcludedCountMap["Linked Deal"] = ExcludedCountMap["Linked Deal"] + count;
-            }
+            AddCount("LNG Futures", count);
             return ice;
         }
         public DataTable ICEExceptionLNGFilter(DataTable ice)
@@ -63,14 +55,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     count++;
                 }
             }
-            if (!ExcludedCountMap.Keys.Contains("LNG Futures"))
-            {
-                ExcludedCountMap["LNG Futures"] = count;
-            }
-            else
-            {
-                ExcludedCountMap["LNG Futures"] = ExcludedCountMap["LNG Futures"] + count;
-            }
+            AddCount("LNG Futures", count);
             return ice;
         }
 
@@ -85,15 +70,12 @@ namespace OverWatcher.TradeReconMonitor.Core
                     count++;
                 }
             }
-            if (!ExcludedCountMap.Keys.Contains("Balmo"))
-            {
-                ExcludedCountMap["Balmo"] = count;
-            }
-            else
-            {
-                ExcludedCountMap["Balmo"] = ExcludedCountMap["Balmo"] + count;
-            }
+            AddCount("Balmo", count);
             return ice;
+        }
+
+        public override void Filter(List<DataTable> dt)
+        {
         }
     }
 }

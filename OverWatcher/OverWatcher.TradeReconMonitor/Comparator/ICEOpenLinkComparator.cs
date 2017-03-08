@@ -8,15 +8,15 @@ using OverWatcher.Common.Logging;
 namespace OverWatcher.TradeReconMonitor.Core
 {
 
-    partial class ICEOpenLinkComparator
+    class ICEOpenLinkComparator
     {
         DataTableFilterBase iceFilter = new ICEDataTableFilter();
-
+        DataTableFilterBase crossTableFilter = new CrossTableFilter();
         public string ExcludedRecords
         {
             get
             {
-                return iceFilter.CountString;
+                return iceFilter.CountString + crossTableFilter.CountString;
             }
         }
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
@@ -31,7 +31,8 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 foreach(ProductType p in Enum.GetValues(typeof(ProductType)))
                 {
-                    DataTable ice = iceFilter.Filter(iceList.Find(s => s.TableName == c.ToString() + p.ToString()));
+                    DataTable ice = iceList.Find(s => s.TableName == c.ToString() + p.ToString());
+                    iceFilter.Filter(ice);
                     DataTable oracle = oracleList.Find(s => s.TableName == c.ToString() + p.ToString());
                     diff.Add(SwapLegIDAndDealID(Diff(ice, oracle)));
                 }
@@ -40,7 +41,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 SwapLegIDAndDealID(dt);
             }
-            ApplyFilter(diff);
+            crossTableFilter.Filter(diff);
             return diff;
         }
 

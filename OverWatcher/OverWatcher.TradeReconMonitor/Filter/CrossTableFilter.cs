@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    partial class ICEOpenLinkComparator
+    class CrossTableFilter : DataTableFilterBase
     {
         private delegate void ResultFilter(List<DataTable> diff);
         private List<ResultFilter> filterList = new List<ResultFilter>();
 
-        public void ApplyFilter(List<DataTable> diff)
+        public override void Filter(List<DataTable> diff)
         {
             filterList.Add(DiffFilter);
             foreach(ResultFilter r in filterList)
@@ -22,7 +22,12 @@ namespace OverWatcher.TradeReconMonitor.Core
                 r.Invoke(diff);
             }
         }
-        private static void DiffFilter(List<DataTable> diff)
+
+        public override void Filter(DataTable dt)
+        {
+        }
+
+        private void DiffFilter(List<DataTable> diff)
         {
             foreach (CompanyName c in Enum.GetValues(typeof(CompanyName)))
             {
@@ -66,6 +71,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         futureRemoveList.AddLast(future.Rows[futureCount]);
                         ++futureCount;
                         ++swapCount;
+                        AddCount("EFS Trade", 1);
                     }
                 }
                 foreach (var dataRow in swapRemoveList)

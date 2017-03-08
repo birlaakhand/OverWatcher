@@ -123,7 +123,7 @@
   <ItemGroup>
     <Compile Include="COMController\EmailController.cs" />
     <Compile Include="COMController\ExcelController.cs" />
-    <Compile Include="Filter\ComparatorFilters.cs" />
+    <Compile Include="Filter\CrossTableFilter.cs" />
     <Compile Include="Comparator\ICEOpenLinkComparator.cs" />
     <Compile Include="Database\DBConnector.cs" />
     <Compile Include="Filter\ICEDataTableFilter.cs" />
