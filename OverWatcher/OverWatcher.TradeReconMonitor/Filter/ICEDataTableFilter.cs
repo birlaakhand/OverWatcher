@@ -12,8 +12,13 @@ namespace OverWatcher.TradeReconMonitor.Core
         public override void Filter(DataTable ice)
         {
             ICELinkIDFilter(ice);
-            ICEExceptionBalmoFilter(ice);
-            ICEExceptionLNGFilter(ice);
+            foreach (string product in System.Configuration
+                .ConfigurationManager
+                .AppSettings["ExcludedProduct"]
+                .Split(";".ToCharArray()))
+            {
+                ICEProductExceptionFilter(product, ice);
+            }
         }
         public DataTable ICELinkIDFilter(DataTable ice)
         {
@@ -41,36 +46,21 @@ namespace OverWatcher.TradeReconMonitor.Core
                     }
                 }
             } while (--loop > 0);
-            AddCount("LNG Futures", count);
+            AddCount("Link ID", count);
             return ice;
         }
-        public DataTable ICEExceptionLNGFilter(DataTable ice)
+        public DataTable ICEProductExceptionFilter(string product, DataTable ice)
         {
             int count = 0;
             for(int i = 0; i < ice.Rows.Count; i++)
             {
-                if("LNG Futures" == ice.Rows[i]["Product"].ToString())
+                if(product == ice.Rows[i]["Product"].ToString())
                 {
                     ice.Rows.RemoveAt(i);
                     count++;
                 }
             }
-            AddCount("LNG Futures", count);
-            return ice;
-        }
-
-        public DataTable ICEExceptionBalmoFilter(DataTable ice)
-        {
-            int count = 0;
-            for (int i = 0; i < ice.Rows.Count; i++)
-            {
-                if ("LNG Futures" == ice.Rows[i]["Product"].ToString())
-                {
-                    ice.Rows.RemoveAt(i);
-                    count++;
-                }
-            }
-            AddCount("Balmo", count);
+            AddCount(product, count);
             return ice;
         }
 
