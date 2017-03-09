@@ -54,7 +54,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             int count = 0;
             for(int i = 0; i < ice.Rows.Count; i++)
             {
-                if(product == ice.Rows[i]["Product"].ToString())
+                if(ice.Rows[i]["Product"].ToString().Contains(product))
                 {
                     ice.Rows.RemoveAt(i);
                     count++;
