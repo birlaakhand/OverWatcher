@@ -16,7 +16,9 @@ namespace OverWatcher.TradeReconMonitor.Core
         {
             get
             {
-                return iceFilter.CountString + crossTableFilter.CountString;
+                return "Excluded deals in the recon result:"
+                    + Environment.NewLine
+                    + iceFilter.CountString + crossTableFilter.CountString;
             }
         }
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)

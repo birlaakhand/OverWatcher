@@ -35,7 +35,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 StringBuilder sb = new StringBuilder();
                 foreach(var tuple in ExcludedCountMap)
                 {
-                    sb.Append(tuple.Value.ToString() + " of "
+                    sb.AppendLine(tuple.Value.ToString() + " of "
                                 + tuple.Key + " has excluded; ");
                 }
                 return sb.ToString();
