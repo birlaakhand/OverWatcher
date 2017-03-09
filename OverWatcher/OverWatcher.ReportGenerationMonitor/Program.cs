@@ -14,7 +14,7 @@ namespace OverWatcher.ReportGenerationMonitor
         public const string ServiceName = "ReportGenerationMonitoringService";
         private static readonly string[] ReportList = ConfigurationManager
                                                 .AppSettings["ReportList"]
-                                                .ToString().Split(",".ToCharArray());
+                                                .ToString().Split(";".ToCharArray());
         static void Main(string[] args)
         {
             if (!Environment.UserInteractive)
@@ -91,16 +91,20 @@ namespace OverWatcher.ReportGenerationMonitor
         public static void StartWebController()
         {
             var reports = ReportList.Select(rl => new ReportMonitor(rl));
-            reports.Select(rp => rp.RunAsync())
-                      .ToList()
-                      .ForEach(t => t.Wait());
+            foreach(var report in reports)
+            {
+                report.Run();
+            }
             if (Environment.UserInteractive)
             {
                 using (EmailNotifier email = new EmailNotifier())
                 {
                     
                     email.SendResultEmail(
-                        reports.Select(rp => rp.ReportName + " Report Generated At " + rp.ResultTime)
+                        reports.Where(rp => !rp.IsFound).Select(rp => rp.ReportName + " Not Found")
+                            .Aggregate((a, b) => a + Environment.NewLine + b)
+                            + Environment.NewLine + 
+                        reports.Where(rp => rp.IsFound).Select(rp => rp.ReportName + " Report Generated At " + rp.ResultTime)
                             .Aggregate((a, b) => a + Environment.NewLine + b)
                             , ""
                             , reports.Select(rp => rp.AttachmentPath).ToList());

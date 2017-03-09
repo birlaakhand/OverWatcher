@@ -167,12 +167,12 @@ namespace OverWatcher.Common.CefSharpBase
         protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path1));
+            //string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
+            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
-            task.Save(path1);
+            task.Save(path);
 
             // We no longer need the Bitmap.
             // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
@@ -180,7 +180,7 @@ namespace OverWatcher.Common.CefSharpBase
 #if DEBUG
             // Tell Windows to launch the saved image.
             Logger.Info("Screenshot saved.  Launching your default image viewer...");
-            System.Diagnostics.Process.Start(path1);
+            System.Diagnostics.Process.Start(path);
 #endif
             return Task.FromResult<object>(null);
         }

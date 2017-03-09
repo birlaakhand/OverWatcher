@@ -8,10 +8,11 @@ namespace OverWatcher.Common.Logging
     public class Logger
     {
         private static Dictionary<Type, ILog> LoggerMap;
-
+        private static object @lock;
         static Logger()
         {
             LoggerMap = new Dictionary<Type, ILog>();
+            @lock = new object();
         }
 
         private static ILog GetLogger()
@@ -19,13 +20,16 @@ namespace OverWatcher.Common.Logging
             var stackTrace = new StackTrace();
             var methodBase = stackTrace.GetFrame(2).GetMethod();
             var type = methodBase.ReflectedType;
-            if (LoggerMap.ContainsKey(type))
+            lock(@lock)
             {
-                return LoggerMap[type];
+                if (LoggerMap.ContainsKey(type))
+                {
+                    return LoggerMap[type];
+                }
+                ILog logger = LogManager.GetLogger(type);
+                LoggerMap.Add(type, logger);
+                return logger;
             }
-            ILog logger = LogManager.GetLogger(type);
-            LoggerMap.Add(type, logger);
-            return logger;
         }
 
         public static void Info(string formattedString, params object[] param)
