@@ -12,9 +12,9 @@ namespace OverWatcher.TradeReconMonitor.Core
         public override void Filter(DataTable ice)
         {
             ICELinkIDFilter(ice);
-            foreach (string product in System.Configuration
+            foreach (string product in (System.Configuration
                 .ConfigurationManager
-                .AppSettings["ExcludedProduct"]
+                .AppSettings["ExcludedProduct"]?.ToString()??"")
                 .Split(";".ToCharArray()))
             {
                 ICEProductExceptionFilter(product, ice);
