@@ -15,7 +15,7 @@ namespace OverWatcher.ReportGenerationMonitor
     class ReportMonitor : WebControllerBase
     {
         public string URL = "https://www.theice.com/marketdata/reports/10";
-        private DateTime ReportToBeFound = DateTimeHelper.ZoneNow.AddDays(-1);
+        private DateTime ReportToBeFound = DateTimeHelper.ZoneNow.AddWorkingDays(-1);
         private DateTime CurrentReport = DateTime.MinValue;
         public string ReportName;
 
@@ -23,11 +23,7 @@ namespace OverWatcher.ReportGenerationMonitor
         {
             get
             {
-                return CurrentReport == DateTimeHelper.ZoneNow.AddDays(-1);
-            }
-            private set
-            {
-
+                return CurrentReport == DateTimeHelper.ZoneNow.AddWorkingDays(-1);
             }
         }
         public string ResultTime
@@ -80,7 +76,7 @@ namespace OverWatcher.ReportGenerationMonitor
                 
             if (scriptTask.Result != null && scriptTask.Result.ToString() == "I Accept")
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".click()");
+                await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".click()");
             }
             Logger.Info(ReportName + " Loading Login Page");
             do
@@ -98,20 +94,20 @@ namespace OverWatcher.ReportGenerationMonitor
             Logger.Info("Cleaning Up Selection");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", ".removeAttribute('selected')");
+                await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", ".removeAttribute('selected')");
                 scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", "");
             }
             while (scriptTask.Result != null);
             Logger.Info(ReportName + " Selecting Report");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[contains(.,'" + ReportName + "')]", ".setAttribute('selected', 'selected')");
+                await EvaluateXPathScriptAsync(wb, "//div/select/option[contains(.,'" + ReportName + "')]", ".setAttribute('selected', 'selected')");
                 Thread.Sleep(100);
                 scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", ".innerHTML");
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() != ReportName);
 
-            scriptTask = await EvaluateXPathScriptAsync(wb, "//form/input[@value='Submit']", ".click()");
+            await EvaluateXPathScriptAsync(wb, "//form/input[@value='Submit']", ".click()");
             Logger.Info(ReportName + " Loading Report Content");
             do
             {
@@ -133,13 +129,13 @@ namespace OverWatcher.ReportGenerationMonitor
                 Thread.Sleep(100);
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() == string.Empty);
-            scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
+            await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
             string resultToBeFound = FormatDate(ReportToBeFound);
             scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", resultToBeFound), ".innerHTML");
             if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(resultToBeFound))
             {
                 ResultTime = FormatDateWithTime(DateTimeHelper.ZoneNow);
-                AttachmentPath = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}_{1}.png", ResultTime, ReportName.Replace(':', '-'));
+                AttachmentPath = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}_{1}.png", ResultTime.Replace(':', '-'), ReportName);
                 Thread.Sleep(2000); //allow page to render, JS rendering cannot detected by code
                 Logger.Info(ReportName + " Report Found, Generation Time approx to " + ResultTime);
                 Logger.Info(ReportName + " Saving Screenshot...");

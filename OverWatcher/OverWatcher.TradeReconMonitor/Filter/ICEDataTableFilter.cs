@@ -52,14 +52,18 @@ namespace OverWatcher.TradeReconMonitor.Core
         public DataTable ICEProductExceptionFilter(string product, DataTable ice)
         {
             int count = 0;
-            for(int i = 0; i < ice.Rows.Count; i++)
+            var rowsToBeDeleted = new List<DataRow>();
+            foreach(DataRow row in ice.Rows)
             {
-                if(ice.Rows[i]["Product"].ToString().Contains(product))
+                if(row["Product"]
+                            .ToString().Contains(product))
                 {
-                    ice.Rows.RemoveAt(i);
+                    rowsToBeDeleted.Add(row);
                     count++;
                 }
             }
+            rowsToBeDeleted.ForEach(r => r.Delete());
+            ice.AcceptChanges();
             AddCount(product, count);
             return ice;
         }

@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using log4net;
 using System.Diagnostics;
+using System.Threading;
 
 namespace OverWatcher.Common.Logging
 {
     public class Logger
     {
-        private static Dictionary<Type, ILog> LoggerMap;
+        private static Dictionary<string, ILog> LoggerMap;
         private static object @lock;
         static Logger()
         {
-            LoggerMap = new Dictionary<Type, ILog>();
+            LoggerMap = new Dictionary<string, ILog>();
             @lock = new object();
         }
 
@@ -20,16 +21,14 @@ namespace OverWatcher.Common.Logging
             var stackTrace = new StackTrace();
             var methodBase = stackTrace.GetFrame(2).GetMethod();
             var type = methodBase.ReflectedType;
-            lock(@lock)
+            var loggerName = type.Name + Thread.CurrentThread.ManagedThreadId;
+            if (LoggerMap.ContainsKey(loggerName))
             {
-                if (LoggerMap.ContainsKey(type))
-                {
-                    return LoggerMap[type];
-                }
-                ILog logger = LogManager.GetLogger(type);
-                LoggerMap.Add(type, logger);
-                return logger;
+                return LoggerMap[loggerName];
             }
+            ILog logger = LogManager.GetLogger(loggerName);
+            LoggerMap.Add(loggerName, logger);
+            return logger;
         }
 
         public static void Info(string formattedString, params object[] param)

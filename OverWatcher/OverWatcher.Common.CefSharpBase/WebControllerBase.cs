@@ -166,8 +166,7 @@ namespace OverWatcher.Common.CefSharpBase
 
         protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
         {
-            var task = await wb.ScreenshotAsync();
-            //string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
+            var task = await wb.ScreenshotAsync();          
             Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
 
             // Save the Bitmap to the path.
@@ -191,9 +190,12 @@ namespace OverWatcher.Common.CefSharpBase
                 string.Format("document.evaluate(\"{0}\", document, null, XPathResult.ANY_TYPE, null ).iterateNext(){1}", xpath, action));
         }
 
+        /// <summary>
+        /// Nested class to handle download, no need to change
+        /// </summary>
         protected class DownloadHandler : IDownloadHandler
         {
-            WebControllerBase drm;
+            private readonly WebControllerBase drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
                 if (!callback.IsDisposed)

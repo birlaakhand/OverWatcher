@@ -15,6 +15,7 @@ namespace OverWatcher.ReportGenerationMonitor
         private static readonly string[] ReportList = ConfigurationManager
                                                 .AppSettings["ReportList"]
                                                 .ToString().Split(";".ToCharArray());
+        private static int FoundMask = 0;
         static void Main(string[] args)
         {
             if (!Environment.UserInteractive)
@@ -95,6 +96,12 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 report.Run();
             }
+            int isFound = 0;
+            for(int i = 0; i < reports.Count(); ++i)
+            {
+                isFound += (reports.ElementAt(i).IsFound ? 1 : 0) << i;
+            }
+            if ((isFound & FoundMask) == 0) return;
             if (Environment.UserInteractive)
             {
                 using (EmailNotifier email = new EmailNotifier())
