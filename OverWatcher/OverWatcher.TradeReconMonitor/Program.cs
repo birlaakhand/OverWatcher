@@ -162,7 +162,9 @@ namespace OverWatcher.TradeReconMonitor.Core
                                     + Environment.NewLine 
                                     + BuildComparisonResultBody(diff)
                                     + Environment.NewLine
-                                    + comparator.ExcludedRecords, "", attachmentPaths);
+                                    + HelperFunctions
+                                        .WrapParagraphToHTML(comparator.ExcludedRecords)
+                                    , "", attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)

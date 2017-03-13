@@ -3,7 +3,7 @@
   <Target Name="PlatformCheck" BeforeTargets="ResolveAssemblyReferences" Condition="(('$(Platform)' != 'x86') AND ('$(Platform)' != 'x64') AND ('$(Platform)' != 'Win32') AND '$(CefSharpAnyCpuSupport)' != 'true')">
     <Error Text="$(MSBuildThisFileName) will work out of the box if you specify platform (x86 / x64). For AnyCPU Support see https://github.com/cefsharp/CefSharp/issues/1714" />
   </Target>
-  <ItemGroup Condition="Exists('..\packages\cef.redist.x64.*\CEF\x64')">
+  <ItemGroup>
     <CefBinaries64 Include="..\packages\cef.redist.x64.*\CEF\x64\*.*" />
     <CefPakFiles64 Include="..\packages\cef.redist.x64.*\CEF\*.*" />
     <CefLocales64 Include="..\packages\cef.redist.x64.*\CEF\locales\*.*" />

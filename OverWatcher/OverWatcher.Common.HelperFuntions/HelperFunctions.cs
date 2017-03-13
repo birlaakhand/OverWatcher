@@ -84,6 +84,12 @@ namespace OverWatcher.Common.HelperFunctions
             return dt;
         }
 
+        public static string WrapParagraphToHTML(string para)
+        {
+            return "<p>" + para
+                        .Replace(Environment.NewLine, "</p><p>")
+                        + "</p>";
+        }
         private static string[] CSVLineSpliter(string line)
         {
             List<string> buffer = new List<string>();

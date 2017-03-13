@@ -204,7 +204,6 @@
   <Import Project="..\OverWatcher.Common.CefSharpBase\Build\CefSharp.targets" Condition="Exists('..\OverWatcher.Common.CefSharpBase\Build\CefSharp.targets')" />
   <PropertyGroup>
     <PostBuildEvent>if not exist $(TargetDir)bin mkdir $(TargetDir)bin
-del /F "$(TargetDir)CefSharp*"
 %25systemroot%25\System32\xcopy /r /y /d "$(TargetDir)*.dll" "$(TargetDir)bin"
 %25systemroot%25\System32\xcopy /r /y /d "$(TargetDir)*.xml" "$(TargetDir)bin"
 del /F "$(TargetDir)*.xml"
