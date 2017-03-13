@@ -12,8 +12,8 @@
 [Rr]elease/
 x64/
 build/
-!OverWatcher.TradeReconMonitor/Build/
-!OverWatcher.Common.CefSharpBase/Build/
+!**/OverWatcher.TradeReconMonitor/Build/
+!**/OverWatcher.Common.CefSharpBase/Build/
 bld/
 [Bb]in/
 [Oo]bj/
