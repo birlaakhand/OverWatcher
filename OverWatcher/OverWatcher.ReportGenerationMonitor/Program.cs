@@ -58,12 +58,12 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 System.IO.Directory.CreateDirectory(ConfigurationManager.AppSettings["TempFolderPath"]);
             }
-            WebControllerBase.InitializeEnvironment();
+            BrowserWatcherBase.InitializeEnvironment();
             var schedule = new Schedule(ConfigurationManager.AppSettings["Frequency"],
                                             ConfigurationManager.AppSettings["FrequencyValue"],
                                             ConfigurationManager.AppSettings["Skip"],
                                             ConfigurationManager.AppSettings["SkipValue"]);
-            if (!schedule.isSingleRun())
+            if (!schedule.IsSingleRun())
             {
                 Logger.Info("Start in Scheduled Mode");
                 int interval = 1;
@@ -86,7 +86,7 @@ namespace OverWatcher.ReportGenerationMonitor
         }
         public static void Stop()
         {
-            WebControllerBase.CleanupEnvironment();
+            BrowserWatcherBase.CleanupEnvironment();
         }
 
         public static void StartWebController()

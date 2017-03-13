@@ -166,7 +166,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                     csv.Columns.Remove(col);
                 }
             }
-            HelperFunctions.SaveDataTableToCSV(csv, "");
+            csv.OWSaveToCSV("");
         }
 
         private void TrimDataTable(System.Data.DataTable dt)

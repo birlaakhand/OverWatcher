@@ -30,7 +30,7 @@
     <DebugType>none</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>OverWatcher.Common.CefSharpBase.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|x64'">
     <OutputPath>bin\Test\</OutputPath>
@@ -51,7 +51,8 @@
   <ItemGroup>
     <Compile Include="CefSharpException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebControllerBase.cs" />
+    <Compile Include="BrowserWatcherBase.cs" />
+    <Compile Include="BrowserWatcherHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -62,7 +63,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OverWatcher.Common.CefSharpBase.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -9,9 +9,9 @@ using System.Text;
 namespace OverWatcher.Common.HelperFunctions
 {
     public enum SortDirection { ASC, DESC };
-    public class HelperFunctions
+    public static class HelperFunctions
     {
-        public static string SaveDataTableToCSV(DataTable dt, string fileNamePostfx)
+        public static string OWSaveToCSV(this DataTable dt, string fileNamePostfx)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -33,7 +33,7 @@ namespace OverWatcher.Common.HelperFunctions
             return cell.Contains(",") ?  "\"" + cell + "\"" : cell;
         }
 
-        public static void SortDataTable<T>(DataTable dt, string colName, SortDirection direction)
+        public static void OWSort<T>(this DataTable dt, string colName, SortDirection direction)
         {
             DataTable tmp = dt.Clone();
             tmp.Columns[colName].DataType = typeof(T);
@@ -49,7 +49,7 @@ namespace OverWatcher.Common.HelperFunctions
             }
         }
 
-        public static void SortDataTable(DataTable dt, string colName, SortDirection direction)
+        public static void SortDataTable(this DataTable dt, string colName, SortDirection direction)
         {
             dt.DefaultView.Sort = colName + " " + direction;
             var tmp = dt.DefaultView.ToTable();
@@ -89,7 +89,7 @@ namespace OverWatcher.Common.HelperFunctions
             List<string> buffer = new List<string>();
             bool isQuoted = false;
             StringBuilder stringBuffer = new StringBuilder();
-            foreach(char c in line.ToCharArray())
+            foreach(char c in line)
             {
                 if (c == '\"') isQuoted = !isQuoted;
                 else if(!isQuoted && c == ',')

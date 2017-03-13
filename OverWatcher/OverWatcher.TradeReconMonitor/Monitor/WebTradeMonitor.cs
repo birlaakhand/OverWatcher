@@ -19,7 +19,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 {
     public enum ProductType { Swap, Futures };
     public enum CompanyName { CBNA, CGML };
-    class WebTradeMonitor : WebControllerBase,ITradeMonitor
+    class WebTradeMonitor : BrowserWatcherBase,ITradeMonitor
     {
         private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         private string _url = ConfigurationManager.AppSettings["TargetUrl"];
@@ -209,7 +209,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 Swap += int.Parse(f.Substring(1, f.Length - 2));
                 if(ConfigurationManager.AppSettings["EnableSaveWebpageScreenShot"] == "true")
                 {
-                    await SavePageScreenShot(wb, ConfigurationManager.AppSettings["TempFolderPath"] + "WebPageScreenShot.png");
+                    await wb.SavePageScreenShot(ConfigurationManager.AppSettings["TempFolderPath"] + "WebPageScreenShot.png");
                 }
                 wb.LoadingStateChanged -= AnalyzePage;
                 await wb.EvaluateScriptAsync(
