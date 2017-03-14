@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.props" Condition="Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.props')" />
-  <Import Project="..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.props')" />
+  <Import Project="..\OverWatcher.Common.CefSharpBase\Build\CefSharp.OffScreen.props" Condition="Exists('..\OverWatcher.Common.CefSharpBase\Build\CefSharp.OffScreen.props')" />
+  <Import Project="..\OverWatcher.Common.CefSharpBase\Build\CefSharp.Common.props" Condition="Exists('..\OverWatcher.Common.CefSharpBase\Build\CefSharp.Common.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -13,8 +13,6 @@
     <AssemblyName>OverWatcher.Common.CefSharpBase</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -32,7 +30,7 @@
     <DebugType>none</DebugType>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>OverWatcher.Common.CefSharpBase.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|x64'">
     <OutputPath>bin\Test\</OutputPath>
@@ -53,17 +51,18 @@
   <ItemGroup>
     <Compile Include="CefSharpException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WebControllerBase.cs" />
+    <Compile Include="BrowserWatcherBase.cs" />
+    <Compile Include="BrowserWatcherHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <ProjectReference Include="..\OverWatcher.Common.Logger\OverWatcher.Common.Logging.csproj">
       <Project>{0ce1953f-44ad-4ab3-a3db-446731e88328}</Project>
       <Name>OverWatcher.Common.Logging</Name>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OverWatcher.Common.CefSharpBase.ruleset" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -71,29 +70,7 @@
     <Analyzer Include="..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.CSharp.dll" />
     <Analyzer Include="..\packages\SonarAnalyzer.CSharp.1.20.1\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references CefSharp that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.props'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.props'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets'))" />
-  </Target>
-  <Import Project="..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2785.1482\build\cef.redist.x64.targets')" />
-  <Import Project="..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2785.1482\build\cef.redist.x86.targets')" />
-  <Import Project="..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.53.0.0\build\CefSharp.Common.targets')" />
-  <Import Project="..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets" Condition="Exists('..\packages\CefSharp.OffScreen.53.0.0\build\CefSharp.OffScreen.targets')" />
+  <Import Project="..\OverWatcher.Common.CefSharpBase\Build\CefSharp.targets" Condition="Exists('..\OverWatcher.Common.CefSharpBase\Build\CefSharp.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

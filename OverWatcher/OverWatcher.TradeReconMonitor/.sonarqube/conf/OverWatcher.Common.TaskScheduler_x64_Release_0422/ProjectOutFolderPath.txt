@@ -1,1 +1,0 @@
-C:\Users\hw72786\Source\Repos\OverWatcher\OverWatcher\OverWatcher.TradeReconMonitor\.sonarqube\out\\OverWatcher.Common.TaskScheduler_x64_Release_0422

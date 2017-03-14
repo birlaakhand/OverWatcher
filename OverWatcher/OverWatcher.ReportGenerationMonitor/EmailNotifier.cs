@@ -16,7 +16,7 @@ namespace OverWatcher.ReportGenerationMonitor
     class EmailNotifier : COMInterfaceBase
     {
         private Application outlook;
-        private _NameSpace ns = null;
+        private readonly _NameSpace ns = null;
         private bool isUsingOpenedOutlook = false;
         public EmailNotifier()
         {

@@ -34,7 +34,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                                             ConfigurationManager.AppSettings["FrequencyValue"],
                                             ConfigurationManager.AppSettings["Skip"],
                                             ConfigurationManager.AppSettings["SkipValue"]);
-            if (!schedule.isSingleRun())
+            if (!schedule.IsSingleRun())
             {
                 Logger.Info("Start in Scheduled Mode");
                 int interval = 1;
@@ -155,22 +155,24 @@ namespace OverWatcher.TradeReconMonitor.Core
                             {
                                 Logger.Info("Add Count Result To Email...");
                                 Logger.Info("Add Comparison Result To Email...");
-                                var attachmentPaths = diff.Select(d => projectPath + HelperFunctions.SaveDataTableToCSV(d, "_Diff")).ToList();
+                                var attachmentPaths = diff.Select(d => projectPath + d.OWSaveToCSV("_Diff")).ToList();
                                 Logger.Info("Add Comparison Result To Attachment...");
                                 email.SendResultEmail(p.CountToHTML() 
                                     + db.CountToHTML() 
                                     + Environment.NewLine 
                                     + BuildComparisonResultBody(diff)
                                     + Environment.NewLine
-                                    + comparator.ExcludedRecords, "", attachmentPaths);
+                                    + HelperFunctions
+                                        .WrapParagraphToHTML(comparator.ExcludedRecords)
+                                    , "", attachmentPaths);
                             }
                         }
                         if (EnableSaveLocal)
                         {
                             Logger.Info("Saving To Local...");
                             p.OutputCountToFile();
-                            DBResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_DB"));
-                            ICEResult.ForEach(d => HelperFunctions.SaveDataTableToCSV(d, "_ICE"));
+                            DBResult.ForEach(d => d.OWSaveToCSV("_DB"));
+                            ICEResult.ForEach(d => d.OWSaveToCSV("_ICE"));
                         }
 
                     }

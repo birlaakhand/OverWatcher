@@ -35,8 +35,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                 DataTable swap = tables.Find(d => d.TableName.Contains(ProductType.Swap.ToString()));
                 DataTable future = tables.Find(d => d.TableName.Contains(ProductType.Futures.ToString()));
                 if (swap == null || future == null) return;
-                HelperFunctions.SortDataTable<int>(swap, "Deal ID", SortDirection.ASC);
-                HelperFunctions.SortDataTable<int>(future, "Deal ID", SortDirection.ASC);
+                swap.OWSort<int>("Deal ID", SortDirection.ASC);
+                future.OWSort<int>("Deal ID", SortDirection.ASC);
                 int swapCount = 0;
                 int futureCount = 0;
                 LinkedList<DataRow> swapRemoveList = new LinkedList<DataRow>();

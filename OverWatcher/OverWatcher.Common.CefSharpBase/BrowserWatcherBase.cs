@@ -12,14 +12,14 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.Common.CefSharpBase
 {
-    public abstract class WebControllerBase
+    public abstract class BrowserWatcherBase
     {
         #region Thread Share Fields
         protected volatile bool isDownloadCompleted = false;
         protected volatile string DownloadFileName = "";
         protected AutoResetEvent _pageAnalyzeFinished = new AutoResetEvent(false);
         protected readonly string TempFolderPath;
-        protected WebControllerBase(string temp)
+        protected BrowserWatcherBase(string temp)
         {
             TempFolderPath = temp;
         }
@@ -164,36 +164,12 @@ namespace OverWatcher.Common.CefSharpBase
             }
         }
 
-        protected async Task<object> SavePageScreenShot(ChromiumWebBrowser wb, string path)
-        {
-            var task = await wb.ScreenshotAsync();
-            //string path1 = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + "\\aaa.png";
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
-
-            // Save the Bitmap to the path.
-            // The image type is auto-detected via the ".png" extension.
-            task.Save(path);
-
-            // We no longer need the Bitmap.
-            // Dispose it to avoid keeping the memory alive.  Especially important in 32-bit applications.
-            task.Dispose();
-#if DEBUG
-            // Tell Windows to launch the saved image.
-            Logger.Info("Screenshot saved.  Launching your default image viewer...");
-            System.Diagnostics.Process.Start(path);
-#endif
-            return Task.FromResult<object>(null);
-        }
-
-        protected Task<JavascriptResponse> EvaluateXPathScriptAsync(ChromiumWebBrowser wb, string xpath, string action)
-        {
-            return wb.EvaluateScriptAsync(
-                string.Format("document.evaluate(\"{0}\", document, null, XPathResult.ANY_TYPE, null ).iterateNext(){1}", xpath, action));
-        }
-
+        /// <summary>
+        /// Nested class to handle download, no need to change
+        /// </summary>
         protected class DownloadHandler : IDownloadHandler
         {
-            WebControllerBase drm;
+            private readonly BrowserWatcherBase drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
                 if (!callback.IsDisposed)
@@ -215,7 +191,7 @@ namespace OverWatcher.Common.CefSharpBase
                 }
             }
 
-            public DownloadHandler(WebControllerBase drm)
+            public DownloadHandler(BrowserWatcherBase drm)
             {
                 this.drm = drm;
             }

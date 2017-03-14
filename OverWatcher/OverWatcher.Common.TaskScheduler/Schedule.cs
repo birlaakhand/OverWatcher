@@ -15,20 +15,20 @@ namespace OverWatcher.Common.Scheduler
     }
     public class Schedule
     {
-        private Frequency freq;
-        private Skip skip;
-        private System.DateTime frequencyValue;
+        private readonly Frequency freq;
+        private readonly Skip skip;
+        private readonly System.DateTime frequencyValue;
         private List<System.DateTime> skipValue;
 
         public DateTime NextRun { get; set; }
-        public bool isOnTime(System.DateTime dt)
+        public bool IsOnTime(System.DateTime dt)
         {
-            if (isSkip(dt) || dt < NextRun) return false;
+            if (IsSkip(dt) || dt < NextRun) return false;
             CalculateNextTime();
             CalculateNextSkip();
             return true;
         }
-        public bool isSingleRun()
+        public bool IsSingleRun()
         {
             return freq == Frequency.NONE ? true : false;
         }
@@ -50,7 +50,7 @@ namespace OverWatcher.Common.Scheduler
             }
         }
 
-        private bool isSkip(System.DateTime dt)
+        private bool IsSkip(System.DateTime dt)
         {
             if (this.skip == Skip.DAYOFWEEK)
             {
@@ -60,7 +60,7 @@ namespace OverWatcher.Common.Scheduler
         }
         private void CalculateNextSkip()
         {
-
+            // To Be Implemented
         }
         private void CalculateSkip(string skipValue)
         {
@@ -79,7 +79,7 @@ namespace OverWatcher.Common.Scheduler
             {
                 NextRun = NextRun.AddMilliseconds(frequencyValue.Subtract(DateTime.MinValue).TotalMilliseconds);
             }
-            while(isSkip(NextRun))
+            while(IsSkip(NextRun))
             {
                 if (this.skip == Skip.DAYOFWEEK)
                 {

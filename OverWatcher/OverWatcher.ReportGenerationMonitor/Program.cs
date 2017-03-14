@@ -1,7 +1,9 @@
-﻿using OverWatcher.Common.CefSharpBase;
+﻿using OverWatcher.Common;
+using OverWatcher.Common.CefSharpBase;
 using OverWatcher.Common.Logging;
 using OverWatcher.Common.Scheduler;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
@@ -12,9 +14,23 @@ namespace OverWatcher.ReportGenerationMonitor
     public static class Program
     {
         public const string ServiceName = "ReportGenerationMonitoringService";
-        private static readonly string[] ReportList = ConfigurationManager
-                                                .AppSettings["ReportList"]
-                                                .ToString().Split(";".ToCharArray());
+        private readonly static ConcurrentDictionary<string, DateTime> ReportMap;
+        static Program()
+        {
+            ConcurrentDictionary<string, DateTime> ReportMap = new ConcurrentDictionary<string, DateTime>();
+            DateTime baseTime = DateTimeHelper.ZoneNow.AddWorkingDays(-1);
+            if(!ConfigurationManager
+                .AppSettings["ReportList"]
+                .ToString().Split(";".ToCharArray())
+                .ToList()
+                .Select(rp => ReportMap.TryAdd(rp, baseTime))
+                .Aggregate((b1, b2) => b1 & b2))
+            {
+                string error = "Illegal Report Name";
+                throw new Exception(error);
+            }
+        }
+
         static void Main(string[] args)
         {
             if (!Environment.UserInteractive)
@@ -57,12 +73,12 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 System.IO.Directory.CreateDirectory(ConfigurationManager.AppSettings["TempFolderPath"]);
             }
-            WebControllerBase.InitializeEnvironment();
+            BrowserWatcherBase.InitializeEnvironment();
             var schedule = new Schedule(ConfigurationManager.AppSettings["Frequency"],
                                             ConfigurationManager.AppSettings["FrequencyValue"],
                                             ConfigurationManager.AppSettings["Skip"],
                                             ConfigurationManager.AppSettings["SkipValue"]);
-            if (!schedule.isSingleRun())
+            if (!schedule.IsSingleRun())
             {
                 Logger.Info("Start in Scheduled Mode");
                 int interval = 1;
@@ -85,29 +101,52 @@ namespace OverWatcher.ReportGenerationMonitor
         }
         public static void Stop()
         {
-            WebControllerBase.CleanupEnvironment();
+            BrowserWatcherBase.CleanupEnvironment();
         }
 
         public static void StartWebController()
         {
-            var reports = ReportList.Select(rl => new ReportMonitor(rl));
-            foreach(var report in reports)
+            var reports = ReportMap
+                            .Select(rl => new ReportMonitor(rl.Key, rl.Value))
+                            .ToList();
+                     
+            if (reports.Select(rp =>
+                                {
+                                    rp.Run();
+                                    return rp.IsFound;
+                                })
+                    .Aggregate((b1, b2) => b1 | b2))
             {
-                report.Run();
+                Logger.Info("No new Report Found, Skip the Email Notification");
+                return;
             }
+            foreach(var pair in ReportMap)
+            {
+                ReportMap[pair.Key] = ReportMap[pair.Key].AddWorkingDays(1);
+            }
+
             if (Environment.UserInteractive)
             {
                 using (EmailNotifier email = new EmailNotifier())
                 {
                     
                     email.SendResultEmail(
-                        reports.Where(rp => !rp.IsFound).Select(rp => rp.ReportName + " Not Found")
+                        reports.Where(rp => !rp.IsFound)
+                                .Select(rp => 
+                                rp.ReportName 
+                                + "For " 
+                                + ReportMonitor
+                                .FormatDate(rp.ReportToBeFound) + " Not Found")
                             .Aggregate((a, b) => a + Environment.NewLine + b)
                             + Environment.NewLine + 
-                        reports.Where(rp => rp.IsFound).Select(rp => rp.ReportName + " Report Generated At " + rp.ResultTime)
-                            .Aggregate((a, b) => a + Environment.NewLine + b)
-                            , ""
-                            , reports.Select(rp => rp.AttachmentPath).ToList());
+                        reports.Where(rp => rp.IsFound)
+                                .Select(rp => rp.ReportName
+                                        + "For "
+                                        + ReportMonitor
+                                        .FormatDate(rp.ReportToBeFound) + " Report Generated At " + rp.ResultTime)
+                                .Aggregate((a, b) => a + Environment.NewLine + b)
+                                    , ""
+                                    , reports.Select(rp => rp.AttachmentPath).ToList());
                 }
             }
         }

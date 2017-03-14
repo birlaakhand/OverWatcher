@@ -12,24 +12,13 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.ReportGenerationMonitor
 {
-    class ReportMonitor : WebControllerBase
+    class ReportMonitor : BrowserWatcherBase
     {
         public string URL = "https://www.theice.com/marketdata/reports/10";
-        private DateTime ReportToBeFound = DateTimeHelper.ZoneNow.AddDays(-1);
-        private DateTime CurrentReport = DateTime.MinValue;
+        public DateTime ReportToBeFound { get; private set; }
         public string ReportName;
 
-        public bool IsFound
-        {
-            get
-            {
-                return CurrentReport == DateTimeHelper.ZoneNow.AddDays(-1);
-            }
-            private set
-            {
-
-            }
-        }
+        public bool IsFound { get; private set; }
         public string ResultTime
         {
             get;
@@ -40,7 +29,7 @@ namespace OverWatcher.ReportGenerationMonitor
             get;
             private set;
         }
-        private static string FormatDate(DateTime now)
+        public static string FormatDate(DateTime now)
         {
             return now.ToString("MMMM d, yyyy", new CultureInfo("en-US"));
         }
@@ -49,9 +38,10 @@ namespace OverWatcher.ReportGenerationMonitor
         {
             return now.ToString("yyyy-MM-dd-hh:mm:ss", new CultureInfo("en-US"));
         }
-        public ReportMonitor(string ReportName) : base(ConfigurationManager.AppSettings["TempFolderPath"])
+        public ReportMonitor(string ReportName, DateTime reportToBeFound) : base(ConfigurationManager.AppSettings["TempFolderPath"])
         {
             this.ReportName = ReportName;
+            ReportToBeFound = reportToBeFound;
         }
         protected override Task StartBrowser()
         {
@@ -76,19 +66,19 @@ namespace OverWatcher.ReportGenerationMonitor
             var wb = s as ChromiumWebBrowser;
             if (await IsPageLoading(wb, e)) return;
             Logger.Info(ReportName + " Webpage Loaded, Start Analyzing, Finding Report:" + ReportName);
-            JavascriptResponse scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");    
+            JavascriptResponse scriptTask = await wb.EvaluateXPathScriptAsync("//button[contains(., 'I Accept')]", ".innerHTML");    
                 
             if (scriptTask.Result != null && scriptTask.Result.ToString() == "I Accept")
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".click()");
+                await wb.EvaluateXPathScriptAsync("//button[contains(., 'I Accept')]", ".click()");
             }
-            Logger.Info(ReportName + " Loading Login Page");
+            Logger.Info("Loading Login Page");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//button[contains(., 'I Accept')]", ".innerHTML");
+                scriptTask = await wb.EvaluateXPathScriptAsync("//button[contains(., 'I Accept')]", ".innerHTML");
             }
             while (scriptTask.Result != null && scriptTask.Result.ToString() == "I Accept");
-            Logger.Info(ReportName + " Loading Report Options");
+            Logger.Info("Loading Report Options");
             do
             {
                 scriptTask = await wb.EvaluateScriptAsync("document.getElementById(\"report-content\").className");
@@ -98,58 +88,58 @@ namespace OverWatcher.ReportGenerationMonitor
             Logger.Info("Cleaning Up Selection");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", ".removeAttribute('selected')");
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", "");
+                await wb.EvaluateXPathScriptAsync("//div/select/option[@selected='selected']", ".removeAttribute('selected')");
+                scriptTask = await wb.EvaluateXPathScriptAsync("//div/select/option[@selected='selected']", "");
             }
             while (scriptTask.Result != null);
-            Logger.Info(ReportName + " Selecting Report");
+            Logger.Info("Selecting Report");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[contains(.,'" + ReportName + "')]", ".setAttribute('selected', 'selected')");
+                await wb.EvaluateXPathScriptAsync("//div/select/option[contains(.,'" + ReportName + "')]", ".setAttribute('selected', 'selected')");
                 Thread.Sleep(100);
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/select/option[@selected='selected']", ".innerHTML");
+                scriptTask = await wb.EvaluateXPathScriptAsync("//div/select/option[@selected='selected']", ".innerHTML");
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() != ReportName);
 
-            scriptTask = await EvaluateXPathScriptAsync(wb, "//form/input[@value='Submit']", ".click()");
-            Logger.Info(ReportName + " Loading Report Content");
+            await wb.EvaluateXPathScriptAsync("//form/input[@value='Submit']", ".click()");
+            Logger.Info("Loading Report Content");
             do
             {
                 scriptTask = await wb.EvaluateScriptAsync("document.getElementById(\"report-content\").className");
                 Thread.Sleep(100);
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString().Contains("is-loading"));
-            Logger.Info(ReportName + " Loading Report Content Table");
+            Logger.Info("Loading Report Content Table");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table", ".className");
+                scriptTask = await wb.EvaluateXPathScriptAsync("//div/div/div/table", ".className");
                 Thread.Sleep(100);
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() != "table table-data table-responsive");
-            Logger.Info(ReportName + " Loading Report Content Table Rows");
+            Logger.Info("Loading Report Content Table Rows");
             do
             {
-                scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr/td", ".innerHTML");
+                scriptTask = await wb.EvaluateXPathScriptAsync("//div/div/div/table/tbody/tr/td", ".innerHTML");
                 Thread.Sleep(100);
             }
             while (scriptTask.Result == null || scriptTask.Result.ToString() == string.Empty);
-            scriptTask = await EvaluateXPathScriptAsync(wb, "//div/div/div/table/tbody/tr", ".innerHTML");
+            await wb.EvaluateXPathScriptAsync("//div/div/div/table/tbody/tr", ".innerHTML");
             string resultToBeFound = FormatDate(ReportToBeFound);
-            scriptTask = await EvaluateXPathScriptAsync(wb, string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", resultToBeFound), ".innerHTML");
+            scriptTask = await wb.EvaluateXPathScriptAsync(string.Format("//div/div/div/table/tbody/tr/td[contains(., '{0}')]", resultToBeFound), ".innerHTML");
             if (scriptTask.Result != null && scriptTask.Result.ToString().Contains(resultToBeFound))
             {
                 ResultTime = FormatDateWithTime(DateTimeHelper.ZoneNow);
-                AttachmentPath = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}_{1}.png", ResultTime, ReportName.Replace(':', '-'));
+                AttachmentPath = System.IO.Path.GetFullPath(ConfigurationManager.AppSettings["TempFolderPath"]) + string.Format("WebpageScreenshot_{0}_{1}.png", ResultTime.Replace(':', '-'), ReportName);
                 Thread.Sleep(2000); //allow page to render, JS rendering cannot detected by code
                 Logger.Info(ReportName + " Report Found, Generation Time approx to " + ResultTime);
+                IsFound = true;
                 Logger.Info(ReportName + " Saving Screenshot...");
-                await SavePageScreenShot(wb, AttachmentPath);
-                CurrentReport = ReportToBeFound;
-                ReportToBeFound = ReportToBeFound.AddDays(1);
+                await wb.SavePageScreenShot(AttachmentPath);
             }
             else
             {
                 Logger.Info(ReportName + " Report is not Ready Yet");
+                IsFound = false;
             }
             _pageAnalyzeFinished.Set();
         }

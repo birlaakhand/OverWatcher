@@ -7,9 +7,9 @@ namespace OverWatcher.Common.Scheduler
 {
     public class TaskScheduler
     {
-        System.Timers.Timer timer;
+        private readonly System.Timers.Timer timer;
         public delegate void TaskDelegate();
-        private Dictionary<TaskDelegate, Schedule> task;
+        private readonly Dictionary<TaskDelegate, Schedule> task;
         public TaskScheduler(int interval)
         {
             timer = new System.Timers.Timer(interval);
@@ -36,7 +36,7 @@ namespace OverWatcher.Common.Scheduler
             foreach (KeyValuePair<TaskDelegate, Schedule> pair in task)
             {
                 System.DateTime now = System.DateTime.Now;
-                if (pair.Value.isOnTime(now))
+                if (pair.Value.IsOnTime(now))
                 {
                     Logger.Info("Task Start at " + now.ToString("MM/dd/yyyy hh:mm"));
                     pair.Key.Invoke();
