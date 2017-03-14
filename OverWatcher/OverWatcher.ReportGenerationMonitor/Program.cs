@@ -101,7 +101,8 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 isFound += (reports.ElementAt(i).IsFound ? 1 : 0) << i;
             }
-            if ((isFound & FoundMask) == 0) return;
+            if ((isFound ^ FoundMask) == 0) return;
+            FoundMask = isFound;
             if (Environment.UserInteractive)
             {
                 using (EmailNotifier email = new EmailNotifier())
