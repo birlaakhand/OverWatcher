@@ -17,7 +17,7 @@ namespace OverWatcher.ReportGenerationMonitor
         private readonly static ConcurrentDictionary<string, DateTime> ReportMap;
         static Program()
         {
-            ConcurrentDictionary<string, DateTime> ReportMap = new ConcurrentDictionary<string, DateTime>();
+            ReportMap = new ConcurrentDictionary<string, DateTime>();
             DateTime baseTime = DateTimeHelper.ZoneNow.AddWorkingDays(-1);
             if(!ConfigurationManager
                 .AppSettings["ReportList"]
@@ -109,13 +109,13 @@ namespace OverWatcher.ReportGenerationMonitor
             var reports = ReportMap
                             .Select(rl => new ReportMonitor(rl.Key, rl.Value))
                             .ToList();
-                     
-            if (reports.Select(rp =>
-                                {
-                                    rp.Run();
-                                    return rp.IsFound;
-                                })
-                    .Aggregate((b1, b2) => b1 | b2))
+            var flag = reports.Select(rp =>
+            {
+                rp.Run();
+                return rp.IsFound;
+            })
+                    .Aggregate((b1, b2) => b1 | b2);
+            if (!flag)
             {
                 Logger.Info("No new Report Found, Skip the Email Notification");
                 return;
@@ -129,22 +129,25 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 using (EmailNotifier email = new EmailNotifier())
                 {
-                    
-                    email.SendResultEmail(
-                        reports.Where(rp => !rp.IsFound)
-                                .Select(rp => 
-                                rp.ReportName 
-                                + "For " 
+                    var unfound = reports.Where(rp => !rp.IsFound)
+                                .Select(rp =>
+                                rp.ReportName
+                                + "For "
                                 + ReportMonitor
                                 .FormatDate(rp.ReportToBeFound) + " Not Found")
-                            .Aggregate((a, b) => a + Environment.NewLine + b)
-                            + Environment.NewLine + 
-                        reports.Where(rp => rp.IsFound)
+                            .Aggregate((a, b) => a + Environment.NewLine + b);
+
+                    var found = reports.Where(rp => rp.IsFound)
                                 .Select(rp => rp.ReportName
                                         + "For "
                                         + ReportMonitor
                                         .FormatDate(rp.ReportToBeFound) + " Report Generated At " + rp.ResultTime)
-                                .Aggregate((a, b) => a + Environment.NewLine + b)
+                                .Aggregate((a, b) => a + Environment.NewLine + b);
+                    email.SendResultEmail(
+                            unfound
+                            + Environment.NewLine
+                            + found
+                        
                                     , ""
                                     , reports.Select(rp => rp.AttachmentPath).ToList());
                 }
