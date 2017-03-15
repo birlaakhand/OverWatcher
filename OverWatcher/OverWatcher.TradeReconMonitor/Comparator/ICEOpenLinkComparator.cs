@@ -10,17 +10,12 @@ namespace OverWatcher.TradeReconMonitor.Core
 
     class ICEOpenLinkComparator
     {
-        DataTableFilterBase iceFilter = new ICEDataTableFilter();
-        DataTableFilterBase crossTableFilter = new CrossTableFilter();
-        public string ExcludedRecords
-        {
-            get
-            {
-                return "Excluded deals in the recon result:"
-                    + Environment.NewLine
-                    + iceFilter.CountString + crossTableFilter.CountString;
-            }
-        }
+        readonly DataTableFilterBase _iceFilter = new ICEDataTableFilter();
+        readonly DataTableFilterBase _crossTableFilter = new CrossTableFilter();
+        public string ExcludedRecords => "Excluded deals in the recon result:"
+                                         + Environment.NewLine
+                                         + _iceFilter.CountString + _crossTableFilter.CountString;
+
         public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
         {
             Logger.Info("Diff ICE and Oracle...");
@@ -34,7 +29,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 foreach(ProductType p in Enum.GetValues(typeof(ProductType)))
                 {
                     DataTable ice = iceList.Find(s => s.TableName == c.ToString() + p.ToString());
-                    iceFilter.Filter(ice);
+                    _iceFilter.Filter(ice);
                     DataTable oracle = oracleList.Find(s => s.TableName == c.ToString() + p.ToString());
                     diff.Add(SwapLegIDAndDealID(Diff(ice, oracle)));
                 }
@@ -43,7 +38,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 SwapLegIDAndDealID(dt);
             }
-            crossTableFilter.Filter(diff);
+            _crossTableFilter.Filter(diff);
             return diff;
         }
 

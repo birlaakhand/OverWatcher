@@ -14,7 +14,7 @@ namespace OverWatcher.Common.CefSharpBase
         public static async Task<object> SavePageScreenShot(this ChromiumWebBrowser wb, string path)
         {
             var task = await wb.ScreenshotAsync();
-            Logger.Info(string.Format("Screenshot ready. Saving to {0}", path));
+            Logger.Info($"Screenshot ready. Saving to {path}");
 
             // Save the Bitmap to the path.
             // The image type is auto-detected via the ".png" extension.
@@ -34,7 +34,7 @@ namespace OverWatcher.Common.CefSharpBase
         public static Task<JavascriptResponse> EvaluateXPathScriptAsync(this ChromiumWebBrowser wb, string xpath, string action)
         {
             return wb.EvaluateScriptAsync(
-                string.Format("document.evaluate(\"{0}\", document, null, XPathResult.ANY_TYPE, null ).iterateNext(){1}", xpath, action));
+                $"document.evaluate(\"{xpath}\", document, null, XPathResult.ANY_TYPE, null ).iterateNext(){action}");
         }
     }
 }

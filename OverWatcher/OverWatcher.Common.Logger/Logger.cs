@@ -6,14 +6,12 @@ using System.Threading;
 
 namespace OverWatcher.Common.Logging
 {
-    public class Logger
+    public static class Logger
     {
-        private static Dictionary<string, ILog> LoggerMap;
-        private static object @lock;
+        private static readonly Dictionary<string, ILog> LoggerMap;
         static Logger()
         {
             LoggerMap = new Dictionary<string, ILog>();
-            @lock = new object();
         }
 
         private static ILog GetLogger()
@@ -21,7 +19,7 @@ namespace OverWatcher.Common.Logging
             var stackTrace = new StackTrace();
             var methodBase = stackTrace.GetFrame(2).GetMethod();
             var type = methodBase.ReflectedType;
-            var loggerName = type.Name + Thread.CurrentThread.ManagedThreadId;
+            var loggerName = type?.Name??"" + Thread.CurrentThread.ManagedThreadId;
             if (LoggerMap.ContainsKey(loggerName))
             {
                 return LoggerMap[loggerName];

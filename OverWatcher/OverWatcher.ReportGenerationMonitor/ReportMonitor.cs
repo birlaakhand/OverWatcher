@@ -9,12 +9,13 @@ using System.Configuration;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using OverWatcher.Common.DateTimeHelper;
 
 namespace OverWatcher.ReportGenerationMonitor
 {
     class ReportMonitor : BrowserWatcherBase
     {
-        public string URL = "https://www.theice.com/marketdata/reports/10";
+        public string Url = "https://www.theice.com/marketdata/reports/10";
         public DateTime ReportToBeFound { get; private set; }
         public string ReportName;
 
@@ -38,9 +39,9 @@ namespace OverWatcher.ReportGenerationMonitor
         {
             return now.ToString("yyyy-MM-dd-hh:mm:ss", new CultureInfo("en-US"));
         }
-        public ReportMonitor(string ReportName, DateTime reportToBeFound) : base(ConfigurationManager.AppSettings["TempFolderPath"])
+        public ReportMonitor(string reportName, DateTime reportToBeFound) : base(ConfigurationManager.AppSettings["TempFolderPath"])
         {
-            this.ReportName = ReportName;
+            this.ReportName = reportName;
             ReportToBeFound = reportToBeFound;
         }
         protected override Task StartBrowser()
@@ -48,7 +49,7 @@ namespace OverWatcher.ReportGenerationMonitor
             try
             {
                 Logger.Info(ReportName + " Loading Page");
-                var browser = new ChromiumWebBrowser(URL);
+                var browser = new ChromiumWebBrowser(Url);
                 browser.DownloadHandler = new DownloadHandler(this);
                 browser.LoadingStateChanged += AnalyzePage;
                 _pageAnalyzeFinished.WaitOne();

@@ -2,7 +2,7 @@
 using System.Configuration;
 using OverWatcher.Common.Logging;
 
-namespace OverWatcher.Common
+namespace OverWatcher.Common.DateTimeHelper
 {
     public static class DateTimeHelper
     {
@@ -34,28 +34,14 @@ namespace OverWatcher.Common
         {
             return TimeZoneInfo.ConvertTimeFromUtc(TimeZoneInfo.ConvertTimeToUtc(dt), SpecifiedTimeZone);
         }
-        public static DateTime ZoneNow
-        {
-            get
-            {
-                return TimeZoneInfo.ConvertTimeFromUtc(System.DateTime.UtcNow, SpecifiedTimeZone);
-            }
-            
-        }
+        public static DateTime ZoneNow => TimeZoneInfo.ConvertTimeFromUtc(System.DateTime.UtcNow, SpecifiedTimeZone);
 
         public static DateTime AddWorkingDays(this DateTime dt, double value)
         {
             dt = dt.AddDays(value);
             if(dt.DayOfWeek == DayOfWeek.Saturday || dt.DayOfWeek == DayOfWeek.Sunday)
             {
-                if(value < 0)
-                {
-                    dt.AddDays(Math.Sign(value) * ((int)dt.DayOfWeek - 5) % 7);
-                }
-                else
-                {
-                    dt.AddDays(7 - ((int)dt.DayOfWeek - 1) % 7);
-                }
+                dt = value < 0 ? dt.AddDays(Math.Sign(value) * ((int)dt.DayOfWeek - 5) % 7) : dt.AddDays(7 - ((int)dt.DayOfWeek - 1) % 7);
             }
             return dt;
         }

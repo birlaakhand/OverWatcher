@@ -13,28 +13,28 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.ReportGenerationMonitor
 {
-    class EmailNotifier : COMInterfaceBase
+    internal sealed class EmailNotifier : COMInterfaceBase
     {
-        private Application outlook;
-        private readonly _NameSpace ns = null;
-        private bool isUsingOpenedOutlook = false;
+        private Application _outlook;
+        private readonly _NameSpace _ns = null;
+        private bool _isUsingOpenedOutlook = false;
         public EmailNotifier()
         {
             OpenOutlook();
-            ns = GetCOM<_NameSpace>(outlook.GetNamespace("MAPI"));
+            _ns = GetCOM<_NameSpace>(_outlook.GetNamespace("MAPI"));
         }
 
         private void OpenOutlook()
         {
             if (Process.GetProcessesByName("OUTLOOK").Length > 0)
             {
-                isUsingOpenedOutlook = true;
-                outlook = (Application)Marshal.GetActiveObject("Outlook.Application");
+                _isUsingOpenedOutlook = true;
+                _outlook = (Application)Marshal.GetActiveObject("Outlook.Application");
             }
             else
             {
-                outlook = new Application();
-                isUsingOpenedOutlook = false;
+                _outlook = new Application();
+                _isUsingOpenedOutlook = false;
             }
         }
         public void SendResultEmail(string HTMLbody, string body, List<string> attachments)
@@ -43,7 +43,7 @@ namespace OverWatcher.ReportGenerationMonitor
             MailItem mailItem = null;
             try
             {
-                mailItem = GetCOM<MailItem>(outlook.CreateItem(OlItemType.olMailItem));
+                mailItem = GetCOM<MailItem>(_outlook.CreateItem(OlItemType.olMailItem));
                 mailItem.Subject = "B-Brent Crude Future Report Generation Time";
                 mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
                 mailItem.HTMLBody = body + Environment.NewLine + HTMLbody;
@@ -60,11 +60,11 @@ namespace OverWatcher.ReportGenerationMonitor
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool _disposedValue = false; // To detect redundant calls
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -72,30 +72,30 @@ namespace OverWatcher.ReportGenerationMonitor
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                if (isUsingOpenedOutlook)
+                if (_isUsingOpenedOutlook)
                 {
                     CloseCOM(COMCloseType.DecrementRefCount);
-                    if (outlook != null)
+                    if (_outlook != null)
                     {
-                        Marshal.ReleaseComObject(outlook);
+                        Marshal.ReleaseComObject(_outlook);
                     }
-                    outlook = null;
+                    _outlook = null;
                 }
                 else
                 {
                     CloseCOM(COMCloseType.Exit);
-                    if (outlook != null)
+                    if (_outlook != null)
                     {
-                        outlook.Quit();
-                        Marshal.FinalReleaseComObject(outlook);
-                        outlook = null;
+                        _outlook.Quit();
+                        Marshal.FinalReleaseComObject(_outlook);
+                        _outlook = null;
                     }
                 }
 
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         /// <summary>
@@ -103,7 +103,7 @@ namespace OverWatcher.ReportGenerationMonitor
         /// </summary>
         protected override void CleanUpSetup()
         {
-            closableCOMList.Add(typeof(MailItem));
+            ClosableComList.Add(typeof(MailItem));
         }
         #endregion
     }

@@ -15,10 +15,10 @@ namespace OverWatcher.Common.Scheduler
     }
     public class Schedule
     {
-        private readonly Frequency freq;
-        private readonly Skip skip;
-        private readonly System.DateTime frequencyValue;
-        private List<System.DateTime> skipValue;
+        private readonly Frequency _freq;
+        private readonly Skip _skip;
+        private readonly System.DateTime _frequencyValue;
+        private List<System.DateTime> _skipValue;
 
         public DateTime NextRun { get; set; }
         public bool IsOnTime(System.DateTime dt)
@@ -30,19 +30,19 @@ namespace OverWatcher.Common.Scheduler
         }
         public bool IsSingleRun()
         {
-            return freq == Frequency.NONE ? true : false;
+            return _freq == Frequency.NONE ? true : false;
         }
         public Schedule(string frequency, string frequencyValue,
                                                 string skip, string skipValue)
         {
-            this.skipValue = new List<System.DateTime>();
+            this._skipValue = new List<System.DateTime>();
             try
             {
-                freq = (Frequency)Enum.Parse(typeof(Frequency), frequency.ToUpper());
-                this.skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
+                _freq = (Frequency)Enum.Parse(typeof(Frequency), frequency.ToUpper());
+                this._skip = (Skip)Enum.Parse(typeof(Skip), skip.ToUpper());
                 CalculateSkip(skipValue);
-                this.frequencyValue = ParseAmbiguousDateString(frequencyValue);
-                NextRun = DateTimeHelper.ZoneNow;
+                this._frequencyValue = ParseAmbiguousDateString(frequencyValue);
+                NextRun = DateTimeHelper.DateTimeHelper.ZoneNow;
             }
             catch(Exception ex)
             {
@@ -52,9 +52,9 @@ namespace OverWatcher.Common.Scheduler
 
         private bool IsSkip(System.DateTime dt)
         {
-            if (this.skip == Skip.DAYOFWEEK)
+            if (this._skip == Skip.DAYOFWEEK)
             {
-                return skipValue.Any(s => s.DayOfWeek == dt.DayOfWeek);
+                return _skipValue.Any(s => s.DayOfWeek == dt.DayOfWeek);
             }
             return false;
         }
@@ -64,9 +64,9 @@ namespace OverWatcher.Common.Scheduler
         }
         private void CalculateSkip(string skipValue)
         {
-            if (this.skip == Skip.DAYOFWEEK)
+            if (this._skip == Skip.DAYOFWEEK)
             {
-                this.skipValue = skipValue
+                this._skipValue = skipValue
                     .Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => DateTime.MinValue.AddDays((int)ParseDayofweek(s) + 6)).ToList();
             }
@@ -75,20 +75,20 @@ namespace OverWatcher.Common.Scheduler
 
         private void CalculateNextTime()
         {
-            if (freq == Frequency.REPEATLY)
+            if (_freq == Frequency.REPEATLY)
             {
-                NextRun = NextRun.AddMilliseconds(frequencyValue.Subtract(DateTime.MinValue).TotalMilliseconds);
+                NextRun = NextRun.AddMilliseconds(_frequencyValue.Subtract(DateTime.MinValue).TotalMilliseconds);
             }
             while(IsSkip(NextRun))
             {
-                if (this.skip == Skip.DAYOFWEEK)
+                if (this._skip == Skip.DAYOFWEEK)
                 {
                     NextRun = NextRun.AddDays(1);
                 }
             }
         }
 
-        private DateTime ParseAmbiguousDateString(string date)
+        private static DateTime ParseAmbiguousDateString(string date)
         {
             try
             {               
@@ -107,7 +107,7 @@ namespace OverWatcher.Common.Scheduler
             }
             
         }
-        private DayOfWeek ParseDayofweek(string dow)
+        private static DayOfWeek ParseDayofweek(string dow)
         {
             foreach(DayOfWeek d in Enum.GetValues(typeof(DayOfWeek)))
             {

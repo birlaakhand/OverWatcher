@@ -11,10 +11,10 @@ using OverWatcher.Common.Interface;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
-    class EmailController : COMInterfaceBase
+    internal sealed class EmailController : COMInterfaceBase
     {
-        private Application outlook;
-        private _NameSpace ns = null;
+        private Application _outlook;
+        private readonly _NameSpace _ns = null;
         #region Thread Sync
         private AutoResetEvent syncLock = new AutoResetEvent(false);
         private MailItem awaitingMail = null;
@@ -24,7 +24,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         public EmailController()
         {
             OpenOutlook();
-            ns = GetCOM<_NameSpace>(outlook.GetNamespace("MAPI"));
+            _ns = GetCOM<_NameSpace>(_outlook.GetNamespace("MAPI"));
         } 
 
         private void OpenOutlook()
@@ -32,11 +32,11 @@ namespace OverWatcher.TradeReconMonitor.Core
             if(Process.GetProcessesByName("OUTLOOK").Length > 0)
             {
                 isUsingOpenedOutlook = true;
-                outlook = (Application)Marshal.GetActiveObject("Outlook.Application");
+                _outlook = (Application)Marshal.GetActiveObject("Outlook.Application");
             }
             else
             {
-                outlook = new Application();
+                _outlook = new Application();
                 isUsingOpenedOutlook = false;
             }
         }
@@ -46,7 +46,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             MailItem mailItem = null;
             try
             {
-                mailItem = GetCOM<MailItem>(outlook.CreateItem(OlItemType.olMailItem));
+                mailItem = GetCOM<MailItem>(_outlook.CreateItem(OlItemType.olMailItem));
                 mailItem.Subject = "ICE Openlink Trade Recon Results";
                 mailItem.To = ConfigurationManager.AppSettings["EmailReceipts"];
                 mailItem.HTMLBody = body + Environment.NewLine + HTMLbody;
@@ -66,7 +66,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             string otp = "";
             try
             {
-                MAPIFolder inboxFolder = GetCOM<MAPIFolder>(ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox));
+                MAPIFolder inboxFolder = GetCOM<MAPIFolder>(_ns.GetDefaultFolder(OlDefaultFolders.olFolderInbox));
                 inboxFolder = GetCOM<MAPIFolder>(inboxFolder.Folders[ConfigurationManager.AppSettings["OTPInboxFolder"]]);
                 if (inboxFolder == null) return otp;
                 inboxFolder.Items.Sort("[ReceivedTime]", true);
@@ -128,11 +128,11 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        private bool _disposedValue = false; // To detect redundant calls
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!_disposedValue)
             {
                 if (disposing)
                 {
@@ -143,27 +143,27 @@ namespace OverWatcher.TradeReconMonitor.Core
                 if (isUsingOpenedOutlook)
                 {
                     CloseCOM(COMCloseType.DecrementRefCount);
-                    if (outlook != null)
+                    if (_outlook != null)
                     {
-                        Marshal.ReleaseComObject(outlook);
+                        Marshal.ReleaseComObject(_outlook);
                     }
-                    outlook = null;
+                    _outlook = null;
                 }
                 else
                 {
                     CloseCOM(COMCloseType.Exit);
-                    if(outlook != null)
+                    if(_outlook != null)
                     {
-                        outlook.Quit();
-                        Marshal.FinalReleaseComObject(outlook);
-                        outlook = null;
+                        _outlook.Quit();
+                        Marshal.FinalReleaseComObject(_outlook);
+                        _outlook = null;
                     }
                 }
 
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
 
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
         /// <summary>
@@ -171,7 +171,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         /// </summary>
         protected override void CleanUpSetup()
         {
-            closableCOMList.Add(typeof(MailItem));
+            ClosableComList.Add(typeof(MailItem));
         }
         #endregion
     }

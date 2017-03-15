@@ -8,16 +8,17 @@ using System.Linq;
 using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Scheduler;
 using System.Threading;
+using OverWatcher.Common.CefSharpBase;
 using OverWatcher.Common.Logging;
 namespace OverWatcher.TradeReconMonitor.Core
 {
     class Program
     {
-        private static bool EnableComparison;
-        private static bool EnableSaveLocal;
-        private static bool EnableEmail;
-        private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        private static volatile bool IsICESilent = true;
+        private static readonly bool EnableComparison;
+        private static readonly bool EnableSaveLocal;
+        private static readonly bool EnableEmail;
+        private static readonly string ProjectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        private static volatile bool _isIceSilent = true;
         public static void Main(string[] args)
         {
             Console.Title = "OverWatcher.TradeReconMonitor - Enter 'q' to Quit The Program";
@@ -25,11 +26,17 @@ namespace OverWatcher.TradeReconMonitor.Core
             Stop();
         }
 
+        static Program()
+        {
+            EnableComparison = ConfigurationManager.AppSettings["EnableComparison"] == "true" ? true : false;
+            EnableEmail = ConfigurationManager.AppSettings["EnableEmail"] == "true" ? true : false;
+            EnableSaveLocal = ConfigurationManager.AppSettings["EnableSaveLocal"] == "true" ? true : false;
+        }
 
         public static void Start(string[] args)
         {
             Console.WriteLine("Press \'q\' to quit.");
-            WebTradeMonitor.InitializeEnvironment();
+            BrowserWatcherBase.InitializeEnvironment();
             var schedule = new Schedule(ConfigurationManager.AppSettings["Frequency"],
                                             ConfigurationManager.AppSettings["FrequencyValue"],
                                             ConfigurationManager.AppSettings["Skip"],
@@ -40,10 +47,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 int interval = 1;
                 int.TryParse(ConfigurationManager.AppSettings["SchedulerBaseInterval"], out interval);
                 TaskScheduler scheduler = new TaskScheduler(interval);
-                scheduler.AddTask(() =>
-                {
-                    StartReconsiliation();
-                }, schedule);
+                scheduler.AddTask(StartReconsiliation, schedule);
                 scheduler.Start();
                 while (Console.Read() != 'q') ;
             }
@@ -58,14 +62,9 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public static void Stop()
         {
-            WebTradeMonitor.CleanupEnvironment();
+            BrowserWatcherBase.CleanupEnvironment();
         }
-        private static void LoadOptions()
-        {
-            EnableComparison = ConfigurationManager.AppSettings["EnableComparison"] == "true" ? true : false;
-            EnableEmail = ConfigurationManager.AppSettings["EnableEmail"] == "true" ? true : false;
-            EnableSaveLocal = ConfigurationManager.AppSettings["EnableSaveLocal"] == "true" ? true : false;
-        }
+
         private static void StartReconsiliation()
         {
             if (!Directory.Exists(ConfigurationManager.AppSettings["TempFolderPath"]))
@@ -80,17 +79,15 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 Directory.CreateDirectory(ConfigurationManager.AppSettings["PersistentFolderPath"]);
             }
-            Logger.Info(string.Format("Start Reconsiliate Trade at {0}",
-                    DateTime.Now.ToString("MM/dd/yyyy hh:mm")));
+            Logger.Info($"Start Reconsiliate Trade at {DateTime.Now:MM/dd/yyyy hh:mm}");
             try
             {
-                LoadOptions();
                 WebTradeMonitor p = new WebTradeMonitor();
                 Logger.Info("Clean up Temp Folder...");
                 CleanUpTempFolder();
                 p.Run();
                 p.LogCount();
-                if (IsICESilent == true && p.Futures + p.Swap > 0)
+                if (_isIceSilent == true && p.Futures + p.Swap > 0)
                 {
                     Logger.Info("Sending First Record of Trade for today...");
                     using (EmailController email = new EmailController())
@@ -98,11 +95,11 @@ namespace OverWatcher.TradeReconMonitor.Core
                         email.SendResultEmail(p.CountToHTML(),
                             "First record of trade for today Appears", null);
                     }
-                    IsICESilent = false;
+                    _isIceSilent = false;
                 }
                 if (p.Futures + p.Swap == 0)
                 {
-                    IsICESilent = true;
+                    _isIceSilent = true;
                     Logger.Info("Next Business Day, the ICE Trade has been Reset");
                 }
                 using (ExcelController parser = new ExcelController())
@@ -136,7 +133,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                         OracleDBMonitor db = new OracleDBMonitor();
                         int queryDelay = 0;
                         int.TryParse(ConfigurationManager.AppSettings["DBQueryDelay"], out queryDelay);
-                        Logger.Info(string.Format("Wait to query Database, waiting time = {0} seconds", queryDelay));
+                        Logger.Info($"Wait to query Database, waiting time = {queryDelay} seconds");
                         Thread.Sleep(queryDelay * 1000);
                         var DBResult = db.QueryDB();
                         db.LogCount();
@@ -155,7 +152,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                             {
                                 Logger.Info("Add Count Result To Email...");
                                 Logger.Info("Add Comparison Result To Email...");
-                                var attachmentPaths = diff.Select(d => projectPath + d.OWSaveToCSV("_Diff")).ToList();
+                                var attachmentPaths = diff.Select(d => ProjectPath + d.OWSaveToCSV("_Diff")).ToList();
                                 Logger.Info("Add Comparison Result To Attachment...");
                                 email.SendResultEmail(p.CountToHTML() 
                                     + db.CountToHTML() 
@@ -186,7 +183,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         }
 
-        private static string BuildComparisonResultBody(List<DataTable> diff)
+        private static string BuildComparisonResultBody(IEnumerable<DataTable> diff)
         {
             return string.Join(Environment.NewLine + Environment.NewLine, diff.Select(d => HTMLGenerator.DataTableToHTML(d)));
         }

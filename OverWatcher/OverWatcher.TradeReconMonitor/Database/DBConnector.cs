@@ -16,7 +16,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         private static readonly string Username = ConfigurationManager.AppSettings["DBUserName"];
         private static readonly string Pwd = ConfigurationManager.AppSettings["DBPassword"];
         private static readonly string SID = ConfigurationManager.AppSettings["DBSID"];
-        private OracleConnection connection = null;
+        private readonly OracleConnection _connection = null;
 
         ~DBConnector()
         {
@@ -25,7 +25,7 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public DBConnector()
         {
-            connection = BuildConnection();
+            _connection = BuildConnection();
         }
         private static OracleConnection BuildConnection()
         {
@@ -37,8 +37,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                                        Port.ToString(),
                                        SID
                 );
-            OracleConnection connection = new OracleConnection();
-            connection.ConnectionString = connectionString;
+            OracleConnection connection = new OracleConnection {ConnectionString = connectionString};
 
             try
             {
@@ -60,9 +59,9 @@ namespace OverWatcher.TradeReconMonitor.Core
             dataTable.TableName = tableName;
             try
             {
-                if (connection != null)
+                if (_connection != null)
                 {
-                    cmd.Connection = connection;
+                    cmd.Connection = _connection;
                     cmd.CommandText = query;
                     cmd.CommandType = CommandType.Text;
                     OracleDataReader reader = cmd.ExecuteReader();
@@ -110,8 +109,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                 if (disposing)
                 {
                     // TODO: dispose managed state (managed objects).
-                    connection?.Dispose();
-                    connection?.Close();
+                    _connection?.Dispose();
+                    _connection?.Close();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.

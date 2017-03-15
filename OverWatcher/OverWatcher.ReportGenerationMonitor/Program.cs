@@ -9,13 +9,14 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.ServiceProcess;
+using OverWatcher.Common.DateTimeHelper;
 
 namespace OverWatcher.ReportGenerationMonitor
 {
     public static class Program
     {
         public const string ServiceName = "ReportGenerationMonitoringService";
-        private readonly static ConcurrentDictionary<string, DateTime> ReportMap;
+        private static readonly ConcurrentDictionary<string, DateTime> ReportMap;
         static Program()
         {
             ReportMap = new ConcurrentDictionary<string, DateTime>();
@@ -31,12 +32,12 @@ namespace OverWatcher.ReportGenerationMonitor
                 .Select(rp => ReportMap.TryAdd(rp, baseTime))
                 .Aggregate((b1, b2) => b1 & b2))
             {
-                string error = "Illegal Report Name";
+                const string error = "Illegal Report Name";
                 throw new Exception(error);
             }
         }
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             if (!Environment.UserInteractive)
             {
@@ -89,10 +90,7 @@ namespace OverWatcher.ReportGenerationMonitor
                 int interval = 1;
                 int.TryParse(ConfigurationManager.AppSettings["SchedulerBaseInterval"], out interval);
                 Common.Scheduler.TaskScheduler scheduler = new Common.Scheduler.TaskScheduler(interval);
-                scheduler.AddTask(() =>
-                {
-                    StartWebController();
-                }, schedule);
+                scheduler.AddTask(StartWebController, schedule);
                 scheduler.Start();
                 while (Console.Read() != 'q') ;
             }
@@ -115,9 +113,9 @@ namespace OverWatcher.ReportGenerationMonitor
                             .Select(rl => new ReportMonitor(rl.Key, rl.Value))
                             .ToList();
 
-            var IsAsync = ConfigurationManager.AppSettings["RunAsync"]?.ToString()??"false";
+            var isAsync = ConfigurationManager.AppSettings["RunAsync"]??"false";
             bool flag = false;
-            if(IsAsync == "true")
+            if(isAsync == "true")
             {
                 var threads = reports.Select(rp => rp.RunAsync());
                 foreach(var td in threads)
@@ -132,11 +130,8 @@ namespace OverWatcher.ReportGenerationMonitor
                     report.Run();
                 }
             }
-            flag = reports.Select(rp =>
-            {
-                return rp.IsFound;
-            })
-            .Aggregate((b1, b2) => b1 | b2);
+            flag = reports.Select(rp => rp.IsFound)
+                            .Aggregate((b1, b2) => b1 | b2);
             if (!flag)
             {
                 Logger.Info("No new Report Found, Skip the Email Notification");

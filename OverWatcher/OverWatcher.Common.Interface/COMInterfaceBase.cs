@@ -12,13 +12,13 @@ namespace OverWatcher.Common.Interface
 
         #region Clean Up
         protected enum COMCloseType { Exit, DecrementRefCount };
-        private List<Tuple<dynamic, Type>> COMList;
-        protected List<Type> closableCOMList;
+        private readonly List<Tuple<dynamic, Type>> COMList;
+        protected List<Type> ClosableComList;
         protected abstract void CleanUpSetup();
         protected COMInterfaceBase()
         {
             COMList = new List<Tuple<dynamic, Type>>();
-            closableCOMList = new List<Type>();
+            ClosableComList = new List<Type>();
         }
 
         ~COMInterfaceBase()
@@ -46,7 +46,7 @@ namespace OverWatcher.Common.Interface
             {
                 if (com != null)
                 {
-                    if (closableCOMList.Any(t => t == com.Item2))
+                    if (ClosableComList.Any(t => t == com.Item2))
                     {
                         com.Item1.Close();
                     }

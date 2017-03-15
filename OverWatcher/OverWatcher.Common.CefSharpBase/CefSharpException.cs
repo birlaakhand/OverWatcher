@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace OverWatcher.Common.CefSharpBase
 {
-    class CefSharpException : Exception
+    public class CefSharpException : Exception
     {
         public CefSharpException(string msg) : base(msg) { }
     }

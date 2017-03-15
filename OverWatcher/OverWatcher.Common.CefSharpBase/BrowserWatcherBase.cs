@@ -2,11 +2,9 @@
 using CefSharp.OffScreen;
 using OverWatcher.Common.Logging;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Net;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -84,14 +82,13 @@ namespace OverWatcher.Common.CefSharpBase
         protected HttpWebResponse MakeHttpRequest(string url, byte[] encodedPost, CookieContainer container)
         {
             HttpWebRequest request = HttpWebRequest.Create(url) as HttpWebRequest;
-            Stream dataStream;
 
             request.Method = "POST";
             request.ContentType = "application/json";
             if (encodedPost != null)
             {
                 request.ContentLength = encodedPost.Length;
-                dataStream = request.GetRequestStream();
+                Stream dataStream = request.GetRequestStream();
                 dataStream.Write(encodedPost, 0, encodedPost.Length);
                 dataStream.Close();
             }
@@ -129,7 +126,7 @@ namespace OverWatcher.Common.CefSharpBase
         }
         protected void WriteCookiesToDisk(string file, string cookieJar)
         {
-            if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
+            if (string.IsNullOrEmpty(file)) file = _defaultCookiePath;
             try
             {
                 Logger.Info("Writing cookies to disk... ");
@@ -147,7 +144,7 @@ namespace OverWatcher.Common.CefSharpBase
 
         protected string ReadCookiesFromDisk(string file)
         {
-            if (String.IsNullOrEmpty(file)) file = _defaultCookiePath;
+            if (string.IsNullOrEmpty(file)) file = _defaultCookiePath;
             if (!File.Exists(file))
             {
                 Logger.Info("SSO Cookie does not exist, ask for OTP");
@@ -172,14 +169,16 @@ namespace OverWatcher.Common.CefSharpBase
             private readonly BrowserWatcherBase drm;
             void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback)
             {
-                if (!callback.IsDisposed)
+                if (callback.IsDisposed)
                 {
-                    using (callback)
-                    {
-                        drm.DownloadFileName = downloadItem.SuggestedFileName;
-                        callback.Continue(ConfigurationManager.AppSettings["TempFolderPath"] +
-                                            downloadItem.SuggestedFileName, showDialog: false);
-                    }
+                    return;
+                }
+
+                using (callback)
+                {
+                    drm.DownloadFileName = downloadItem.SuggestedFileName;
+                    callback.Continue(ConfigurationManager.AppSettings["TempFolderPath"] +
+                                      downloadItem.SuggestedFileName, showDialog: false);
                 }
             }
 

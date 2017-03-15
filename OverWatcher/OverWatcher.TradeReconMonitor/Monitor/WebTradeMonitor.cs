@@ -14,16 +14,16 @@ using OverWatcher.Common.Logging;
 using OverWatcher.Common;
 using OverWatcher.Common.Interface;
 using OverWatcher.Common.CefSharpBase;
+using OverWatcher.Common.DateTimeHelper;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
     public enum ProductType { Swap, Futures };
     public enum CompanyName { CBNA, CGML };
     class WebTradeMonitor : BrowserWatcherBase,ITradeMonitor
-    {
-        private static string projectPath = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-        private string _url = ConfigurationManager.AppSettings["TargetUrl"];
-        private Dictionary<string, string> _nameMap = new Dictionary<string, string>
+    {        
+        private static readonly string Url = ConfigurationManager.AppSettings["TargetUrl"];
+        private static readonly Dictionary<string, string> NameMap = new Dictionary<string, string>
         {
             { "Citibank, N.A", "CBNA" },
             { "Citigroup Global Markets Ltd Global Commodities", "CGML"}
@@ -35,13 +35,8 @@ namespace OverWatcher.TradeReconMonitor.Core
 
         public int Swap { get; private set; }
 
-        public string MonitorTitle
-        {
-            get
-            {
-                return "ICETrade";
-            }
-        }
+        public string MonitorTitle => "ICETrade";
+
         #region Login
 
         private void BuildPostLoad(out string post, string otp)
@@ -70,8 +65,8 @@ namespace OverWatcher.TradeReconMonitor.Core
                 if (null != cookies)
                 {
                     var cookie = new CookieContainer();
-                    cookie.SetCookies(new Uri(_url), cookies);
-                    response = MakeHttpRequest(_url
+                    cookie.SetCookies(new Uri(Url), cookies);
+                    response = MakeHttpRequest(Url
                         + ConfigurationManager.AppSettings["PrincipalUrl"]
                         + Urlpostfix(), null, cookie);
                     if (GetResponseString(response).Contains("Valid Token"))
@@ -94,7 +89,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 string post = "";
                 BuildPostLoad(out post, null);
                 byte[] encodedPost = System.Text.Encoding.UTF8.GetBytes(post);
-                response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
+                response = MakeHttpRequest(Url + SSOUrl + Urlpostfix(), encodedPost, null);
                 if (GetResponseString(response).Contains("Re-login with 2FA passcode"))
                 {
                     Logger.Info("OTP Expired, Get OTP from Outlook");
@@ -115,13 +110,13 @@ namespace OverWatcher.TradeReconMonitor.Core
                     response.Close();
                     BuildPostLoad(out post, otp);
                     encodedPost = System.Text.Encoding.UTF8.GetBytes(post);
-                    response = MakeHttpRequest(_url + SSOUrl + Urlpostfix(), encodedPost, null);
+                    response = MakeHttpRequest(Url + SSOUrl + Urlpostfix(), encodedPost, null);
                 }
                 CookieContainer collection = new CookieContainer();
                 string sso = GetCookieHeader(response);
                 if (!sso.Contains("iceSsoCookie")) return RequestSSOCookie();
                 WriteCookiesToDisk(null, sso);
-                collection.SetCookies(new Uri(_url), sso);
+                collection.SetCookies(new Uri(Url), sso);
                 response.Close();
                 #endregion
                 Logger.Info("SSO Cookie is Ready");
@@ -141,17 +136,17 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 var cookieManager = Cef.GetGlobalCookieManager();
                 // Create the offscreen Chromium browser.
-                var cookie = new CefSharp.Cookie();
-                var cookies = RequestSSOCookie().GetCookies(new Uri(_url));
-                string cookie_string = string.Empty;
+                var cookies = RequestSSOCookie().GetCookies(new Uri(Url));
                 foreach (System.Net.Cookie cook in cookies)
                 {
-                    cookieManager.SetCookieAsync(_url + "reports/DealReport.shtml?",
+                    cookieManager.SetCookieAsync(Url + "reports/DealReport.shtml?",
                         ConvertCookie(cook));
 
                 }
-                var browser = new ChromiumWebBrowser(_url + "reports/DealReport.shtml?");
-                browser.DownloadHandler = new DownloadHandler(this);
+                var browser = new ChromiumWebBrowser(Url + "reports/DealReport.shtml?")
+                {
+                    DownloadHandler = new DownloadHandler(this)
+                };
                 browser.LoadingStateChanged += AnalyzePage;
                 _pageAnalyzeFinished.WaitOne();
                 browser.Dispose();
@@ -179,10 +174,10 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 int temp = i;
                 scriptTask = null;
-                scriptTask = await wb.EvaluateScriptAsync(string.Format(
-                 "document.getElementById('companyId').options[{0}].selected = true;", temp));
-                while ((await wb.EvaluateScriptAsync(string.Format(
-                            "console.log(document.getElementById('companyId').options[{0}]);", temp))).Message as string == "false") ;
+                scriptTask = await wb.EvaluateScriptAsync(
+                    $"document.getElementById('companyId').options[{temp}].selected = true;");
+                while ((await wb.EvaluateScriptAsync(
+                           $"console.log(document.getElementById('companyId').options[{temp}]);")).Message == "false") ;
                 scriptTask = null;
                 scriptTask = await wb.EvaluateScriptAsync(
                             "document.evaluate(\"//a[contains(., 'Show')]\", document, null, XPathResult.ANY_TYPE, null ).iterateNext().click();");
@@ -205,7 +200,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                             "document.getElementById('clearedCount').innerHTML;");
                     Thread.Sleep(100);
                 }
-                f = (scriptTask.Result as string);
+                f = ((string) scriptTask.Result);
                 Swap += int.Parse(f.Substring(1, f.Length - 2));
                 if(ConfigurationManager.AppSettings["EnableSaveWebpageScreenShot"] == "true")
                 {
@@ -215,9 +210,13 @@ namespace OverWatcher.TradeReconMonitor.Core
                 await wb.EvaluateScriptAsync(
                     "document.getElementsByClassName('js-download-deals')[1].click();");
                 while (!isDownloadCompleted) ;
-                scriptTask = await wb.EvaluateScriptAsync(string.Format(
-                 "document.getElementById('companyId').options[{0}].innerHTML", temp));
-                RenameExcel(_nameMap[_nameMap.Keys.Where(key => scriptTask.Result.ToString().Contains(key)).FirstOrDefault()]);
+                scriptTask = await wb.EvaluateScriptAsync(
+                    $"document.getElementById('companyId').options[{temp}].innerHTML");
+                var name = NameMap.Keys.FirstOrDefault(key => scriptTask.Result.ToString().Contains(key));
+                if (name != null)
+                {
+                    RenameExcel(name);
+                }
                 isDownloadCompleted = false;
                 DownloadFileName = "";
             }          
@@ -242,7 +241,7 @@ namespace OverWatcher.TradeReconMonitor.Core
         #endregion
 
 
-        private void OutputTo(string futures, string cleared)
+        private static void OutputTo(string futures, string cleared)
         {
             string outputPath = ConfigurationManager.AppSettings["OutputPath"];
             //after your loop
@@ -251,15 +250,15 @@ namespace OverWatcher.TradeReconMonitor.Core
         }
         public void OutputCountToFile()
         {
-            OutputTo(this.Futures.ToString(), this.Swap.ToString().Split("[".ToCharArray())
-                                    .Where(name => !string.IsNullOrEmpty(name)).FirstOrDefault());
+            OutputTo(this.Futures.ToString(), this.Swap.ToString()
+                                    .Split("[".ToCharArray()).FirstOrDefault(name => !string.IsNullOrEmpty(name)));
         }
-        private string FormatCount(string futures, string cleared)
+        private static string FormatCount(string futures, string cleared)
         {
             StringBuilder csv = new StringBuilder();
             csv.AppendLine("BOOK, TRADE_COUNT");
-            csv.AppendLine(string.Format("cleared swap,{0}", cleared));
-            csv.AppendLine(string.Format("future,{0}", futures));
+            csv.AppendLine($"cleared swap,{cleared}");
+            csv.AppendLine($"future,{futures}");
             return csv.ToString();
         }
         private string FormatCount()
