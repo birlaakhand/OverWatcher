@@ -1,5 +1,6 @@
 ﻿using OverWatcher.Common;
 using OverWatcher.Common.CefSharpBase;
+using OverWatcher.Common.HelperFunctions;
 using OverWatcher.Common.Logging;
 using OverWatcher.Common.Scheduler;
 using System;
@@ -18,7 +19,11 @@ namespace OverWatcher.ReportGenerationMonitor
         static Program()
         {
             ReportMap = new ConcurrentDictionary<string, DateTime>();
-            DateTime baseTime = DateTimeHelper.ZoneNow.AddWorkingDays(-1);
+            double TMinus = -1;
+            double.TryParse(ConfigurationManager.AppSettings["ReportMonitoringBaseDate"].ToString(), out TMinus);
+            DateTime baseTime = DateTimeHelper
+                                .ZoneNow
+                                .AddWorkingDays(TMinus);
             if(!ConfigurationManager
                 .AppSettings["ReportList"]
                 .ToString().Split(";".ToCharArray())
@@ -109,12 +114,29 @@ namespace OverWatcher.ReportGenerationMonitor
             var reports = ReportMap
                             .Select(rl => new ReportMonitor(rl.Key, rl.Value))
                             .ToList();
-            var flag = reports.Select(rp =>
+
+            var IsAsync = ConfigurationManager.AppSettings["RunAsync"]?.ToString()??"false";
+            bool flag = false;
+            if(IsAsync == "true")
             {
-                rp.Run();
+                var threads = reports.Select(rp => rp.RunAsync());
+                foreach(var td in threads)
+                {
+                    td.Wait();
+                }
+            }
+            else
+            {
+                foreach(var report in reports)
+                {
+                    report.Run();
+                }
+            }
+            flag = reports.Select(rp =>
+            {
                 return rp.IsFound;
             })
-                    .Aggregate((b1, b2) => b1 | b2);
+            .Aggregate((b1, b2) => b1 | b2);
             if (!flag)
             {
                 Logger.Info("No new Report Found, Skip the Email Notification");
@@ -129,26 +151,25 @@ namespace OverWatcher.ReportGenerationMonitor
             {
                 using (EmailNotifier email = new EmailNotifier())
                 {
-                    var unfound = reports.Where(rp => !rp.IsFound)
+                    var unfound = string.Join(Environment.NewLine
+                                , reports.Where(rp => !rp.IsFound)
                                 .Select(rp =>
                                 rp.ReportName
                                 + "For "
                                 + ReportMonitor
-                                .FormatDate(rp.ReportToBeFound) + " Not Found")
-                            .Aggregate((a, b) => a + Environment.NewLine + b);
+                                .FormatDate(rp.ReportToBeFound) + " Not Found"));
+                            
 
-                    var found = reports.Where(rp => rp.IsFound)
+                    var found = string.Join(Environment.NewLine
+                                , reports.Where(rp => rp.IsFound)
                                 .Select(rp => rp.ReportName
                                         + "For "
                                         + ReportMonitor
-                                        .FormatDate(rp.ReportToBeFound) + " Report Generated At " + rp.ResultTime)
-                                .Aggregate((a, b) => a + Environment.NewLine + b);
+                                        .FormatDate(rp.ReportToBeFound) + " Report Generated At " + rp.ResultTime));
                     email.SendResultEmail(
-                            unfound
+                            HelperFunctions.WrapParagraphToHTML(unfound
                             + Environment.NewLine
-                            + found
-                        
-                                    , ""
+                            + found), ""
                                     , reports.Select(rp => rp.AttachmentPath).ToList());
                 }
             }

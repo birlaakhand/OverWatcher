@@ -79,6 +79,10 @@
       <Project>{33681D3B-B609-48F6-A365-D4D89B7558CE}</Project>
       <Name>OverWatcher.Common.DateTimeHelper</Name>
     </ProjectReference>
+    <ProjectReference Include="..\OverWatcher.Common.HelperFuntions\OverWatcher.Common.HelperFuntions.csproj">
+      <Project>{A86A85FD-9D70-4516-9BDA-91E8188FDB96}</Project>
+      <Name>OverWatcher.Common.HelperFuntions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OverWatcher.Common.Logger\OverWatcher.Common.Logging.csproj">
       <Project>{0ce1953f-44ad-4ab3-a3db-446731e88328}</Project>
       <Name>OverWatcher.Common.Logging</Name>
