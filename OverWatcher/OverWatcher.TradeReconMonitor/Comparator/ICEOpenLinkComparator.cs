@@ -11,10 +11,10 @@ namespace OverWatcher.TradeReconMonitor.Core
     class ICEOpenLinkComparator
     {
         readonly DataTableFilterBase _iceFilter = new ICEDataTableFilter();
-        readonly DataTableFilterBase _crossTableFilter = new CrossTableFilter();
+        //readonly DataTableFilterBase _crossTableFilter = new CrossTableFilter(); No longer required
         public string ExcludedRecords => "Excluded deals in the recon result:"
                                          + Environment.NewLine
-                                         + _iceFilter.CountString + _crossTableFilter.CountString;
+                                         + _iceFilter.CountString; // + _crossTableFilter.CountString; No longer required
 
         public List<DataTable> Diff(IList<DataTable> iceList, IList<DataTable> oracleList)
         {
@@ -38,7 +38,7 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 SwapLegIDAndDealID(dt);
             }
-            _crossTableFilter.Filter(diff);
+            //_crossTableFilter.Filter(diff); No longer required.
             return diff;
         }
 
