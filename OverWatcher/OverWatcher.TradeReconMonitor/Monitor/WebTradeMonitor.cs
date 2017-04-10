@@ -215,7 +215,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                 var name = NameMap.Keys.FirstOrDefault(key => scriptTask.Result.ToString().Contains(key));
                 if (name != null)
                 {
-                    RenameExcel(name);
+                    RenameExcel(NameMap[name]);
                 }
                 isDownloadCompleted = false;
                 DownloadFileName = "";

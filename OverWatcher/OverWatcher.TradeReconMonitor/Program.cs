@@ -102,77 +102,74 @@ namespace OverWatcher.TradeReconMonitor.Core
                     _isIceSilent = true;
                     Logger.Info("Next Business Day, the ICE Trade has been Reset");
                 }
-                using (ExcelController parser = new ExcelController())
+                var ICEResult = ExcelProcessor.Extract().ToList();
+                if (!EnableComparison)
                 {
-
-                    if (!EnableComparison)
+                    Logger.Info("Non Comparison Mode");
+                    Logger.Info("Saving To Local...");
+                    foreach (var dt in ICEResult)
                     {
-                        Logger.Info("Non Comparison Mode");
-                        Logger.Info("Saving To Local...");
-                        parser.SaveAsCSV();
-                        parser.Dispose();
-                        if (!EnableEmail)
-                        {
-                            Logger.Info("Saving Count Result...");
-                            p.OutputCountToFile();
-                        }
-                        else
-                        {
-                            Logger.Info("Add Count Result To Email...");
-                            using (EmailController email = new EmailController())
-                            {
-                                email.SendResultEmail(p.CountToHTML(), "", null);
-                            }
-                        }
+                        dt.OWSaveToCSV("");
+                    }
+                    if (!EnableEmail)
+                    {
+                        Logger.Info("Saving Count Result...");
+                        p.OutputCountToFile();
                     }
                     else
                     {
-                        Logger.Info("Start Comparison...");
-                        var ICEResult = parser.GetDataTableList();
-                        parser.Dispose();
-                        OracleDBMonitor db = new OracleDBMonitor();
-                        int queryDelay = 0;
-                        int.TryParse(ConfigurationManager.AppSettings["DBQueryDelay"], out queryDelay);
-                        Logger.Info($"Wait to query Database, waiting time = {queryDelay} seconds");
-                        Thread.Sleep(queryDelay * 1000);
-                        var DBResult = db.QueryDB();
-                        db.LogCount();
-                        var comparator = new ICEOpenLinkComparator();
-                        var diff = comparator.Diff(ICEResult, DBResult);
-                        diff.ForEach(d => ExcelController.DataTableCorrectDate(ref d, "Trade Date"));
-                        if (diff.All(d => d.Rows.Count == 0))
+                        Logger.Info("Add Count Result To Email...");
+                        using (EmailController email = new EmailController())
                         {
-                            Logger.Info("Reconsiliation Matches, No Alert Send");
+                            email.SendResultEmail(p.CountToHTML(), "", null);
                         }
-                        else if (EnableEmail)
-                        {
-                            //to-do
-                            Logger.Info("Email Enabled...");
-                            using (EmailController email = new EmailController())
-                            {
-                                Logger.Info("Add Count Result To Email...");
-                                Logger.Info("Add Comparison Result To Email...");
-                                var attachmentPaths = diff.Select(d => ProjectPath + d.OWSaveToCSV("_Diff")).ToList();
-                                Logger.Info("Add Comparison Result To Attachment...");
-                                email.SendResultEmail(p.CountToHTML() 
-                                    + db.CountToHTML() 
-                                    + Environment.NewLine 
-                                    + BuildComparisonResultBody(diff)
-                                    + Environment.NewLine
-                                    + HelperFunctions
-                                        .WrapParagraphToHTML(comparator.ExcludedRecords)
-                                    , "", attachmentPaths);
-                            }
-                        }
-                        if (EnableSaveLocal)
-                        {
-                            Logger.Info("Saving To Local...");
-                            p.OutputCountToFile();
-                            DBResult.ForEach(d => d.OWSaveToCSV("_DB"));
-                            ICEResult.ForEach(d => d.OWSaveToCSV("_ICE"));
-                        }
-
                     }
+                }
+                else
+                {
+                    Logger.Info("Start Comparison...");
+                    OracleDBMonitor db = new OracleDBMonitor();
+                    int queryDelay = 0;
+                    int.TryParse(ConfigurationManager.AppSettings["DBQueryDelay"], out queryDelay);
+                    Logger.Info($"Wait to query Database, waiting time = {queryDelay} seconds");
+                    Thread.Sleep(queryDelay * 1000);
+                    var DBResult = db.QueryDB();
+                    db.LogCount();
+                    var comparator = new ICEOpenLinkComparator();
+                    var diff = comparator.Diff(ICEResult, DBResult);
+                    diff.ForEach(d => d.DataTableCorrectDate("Trade Date"));
+                    if (diff.All(d => d.Rows.Count == 0))
+                    {
+                        Logger.Info("Reconsiliation Matches, No Alert Send");
+                    }
+                    else if (EnableEmail)
+                    {
+                        //to-do
+                        Logger.Info("Email Enabled...");
+                        using (EmailController email = new EmailController())
+                        {
+                            Logger.Info("Add Count Result To Email...");
+                            Logger.Info("Add Comparison Result To Email...");
+                            var attachmentPaths = diff.Select(d => ProjectPath + d.OWSaveToCSV("_Diff")).ToList();
+                            Logger.Info("Add Comparison Result To Attachment...");
+                            email.SendResultEmail(p.CountToHTML()
+                                + db.CountToHTML()
+                                + Environment.NewLine
+                                + BuildComparisonResultBody(diff)
+                                + Environment.NewLine
+                                + HelperFunctions
+                                    .WrapParagraphToHTML(comparator.ExcludedRecords)
+                                , "", attachmentPaths);
+                        }
+                    }
+                    if (EnableSaveLocal)
+                    {
+                        Logger.Info("Saving To Local...");
+                        p.OutputCountToFile();
+                        DBResult.ForEach(d => d.OWSaveToCSV("_DB"));
+                        ICEResult.ForEach(d => d.OWSaveToCSV("_ICE"));
+                    }
+
                 }
             }
             catch (Exception ex)

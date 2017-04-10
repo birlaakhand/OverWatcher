@@ -15,6 +15,7 @@ using OverWatcher.Common.Interface;
 
 namespace OverWatcher.TradeReconMonitor.Core
 {
+    [Obsolete("Not used anymore", true)]
     class ExcelController : COMInterfaceBase
     {
         #region Members

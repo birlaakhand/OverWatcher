@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using OverWatcher.Common.Logging;
 using System.Timers;
 
@@ -10,6 +13,7 @@ namespace OverWatcher.Common.Scheduler
         private readonly System.Timers.Timer _timer;
         public delegate void TaskDelegate();
         private readonly Dictionary<TaskDelegate, Schedule> _task;
+        private readonly ConcurrentDictionary<TaskDelegate, Thread> _threadMonitor;
         public TaskScheduler(int interval)
         {
             _timer = new System.Timers.Timer(interval);
@@ -17,27 +21,37 @@ namespace OverWatcher.Common.Scheduler
         }
         public void Start()
         {
-            ElapsedEventHandler handler = new ElapsedEventHandler(TaskEventHandler);
+            ElapsedEventHandler handler = TaskEventHandler;
             _timer.Elapsed += handler;
             _timer.Start();
-            handler.BeginInvoke(this, null, new AsyncCallback(Timer_ElapsedCallback), handler);
-        }
-        private void Timer_ElapsedCallback(IAsyncResult result)
-        {
-            ElapsedEventHandler handler = result.AsyncState as ElapsedEventHandler;
-            handler?.EndInvoke(result);
+            handler.BeginInvoke(this, null, r => {
+                ElapsedEventHandler h = r.AsyncState as ElapsedEventHandler;
+                h?.EndInvoke(r);
+            }, handler);
         }
 
         private void TaskEventHandler(object sender, ElapsedEventArgs e)
         {
-            foreach (KeyValuePair<TaskDelegate, Schedule> pair in _task)
+            try
             {
-                System.DateTime now = System.DateTime.Now;
-                if (!pair.Value.IsOnTime(now)) continue;
-                Logger.Info("Task Start at " + now.ToString("MM/dd/yyyy hh:mm"));
-                pair.Key.Invoke();
-                Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString());
+                foreach (KeyValuePair<TaskDelegate, Schedule> pair in _task)
+                {
+                    System.DateTime now = System.DateTime.Now;
+                    if (!pair.Value.IsOnTime(now)) continue;
+                    Logger.Info("Task Start at " + now.ToString("MM/dd/yyyy hh:mm"));
+                    pair.Key.Invoke();
+                    Logger.Info("Task Run Finished, Next Run at " + pair.Value.NextRun.ToString(CultureInfo.CurrentCulture));
+                }
             }
+            catch (Exception exception)
+            {
+                Logger.Fatal(exception, "Scheduler Fatal Error");
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    throw new Exception("Scheduler Fatal Error", exception);
+                });
+            }
+
         }
         public void Stop()
         {

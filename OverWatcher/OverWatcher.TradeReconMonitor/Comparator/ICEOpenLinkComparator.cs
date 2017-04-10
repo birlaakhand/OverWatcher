@@ -16,7 +16,7 @@ namespace OverWatcher.TradeReconMonitor.Core
                                          + Environment.NewLine
                                          + _iceFilter.CountString + _crossTableFilter.CountString;
 
-        public List<DataTable> Diff(List<DataTable> iceList, List<DataTable> oracleList)
+        public List<DataTable> Diff(IList<DataTable> iceList, IList<DataTable> oracleList)
         {
             Logger.Info("Diff ICE and Oracle...");
             List<DataTable> diff = new List<DataTable>();
@@ -28,9 +28,9 @@ namespace OverWatcher.TradeReconMonitor.Core
             {
                 foreach(ProductType p in Enum.GetValues(typeof(ProductType)))
                 {
-                    DataTable ice = iceList.Find(s => s.TableName == c.ToString() + p.ToString());
+                    DataTable ice = iceList.FirstOrDefault(s => s.TableName == c.ToString() + p.ToString());
                     _iceFilter.Filter(ice);
-                    DataTable oracle = oracleList.Find(s => s.TableName == c.ToString() + p.ToString());
+                    DataTable oracle = oracleList.FirstOrDefault(s => s.TableName == c.ToString() + p.ToString());
                     diff.Add(SwapLegIDAndDealID(Diff(ice, oracle)));
                 }
             }
